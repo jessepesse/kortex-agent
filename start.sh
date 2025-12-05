@@ -6,7 +6,7 @@ echo ""
 
 # Check if in correct directory
 if [ ! -d "backend" ] || [ ! -d "frontend" ]; then
-    echo "❌ Error: Run this script from the life_os/ directory"
+    echo "❌ Error: Run this script from the kortex-agent/ directory"
     exit 1
 fi
 
@@ -24,6 +24,7 @@ trap cleanup SIGINT SIGTERM
 echo "🔧 Starting Flask backend (port 5001)..."
 cd backend
 export FLASK_APP=app.py
+export PYTHONPATH="$PYTHONPATH:$(dirname $(pwd))"
 python3 -m flask run --host=0.0.0.0 --port=5001 &
 BACKEND_PID=$!
 cd ..
