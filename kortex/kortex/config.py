@@ -1,0 +1,104 @@
+"""Configuration management for Kortex Agent"""
+
+import os
+import json
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+# Paths
+BASE_DIR = Path(__file__).parent.parent
+DATA_DIR = BASE_DIR / "data"
+CONFIG_FILE = BASE_DIR / "config.json"
+
+
+def load_config():
+    """Load configuration from config.json and environment variables"""
+    config = {}
+    
+    if not CONFIG_FILE.exists():
+        # Create default config
+        default_config = {
+            "api_keys": {"openai": "", "google": ""},
+            "default_provider": "google",
+            "default_model": "gemini-2.5-flash",
+            "models": {
+                "openai": ["gpt-5", "gpt-5-mini", "gpt-5-nano", "gpt-5.1"],
+                "google": ["gemini-3-pro-preview", "gemini-2.5-pro", "gemini-2.5-flash", "gemini-2.5-flash-lite"],
+                "anthropic": ["claude-opus-4-5", "claude-haiku-4-5", "claude-haiku-3-5", "claude-haiku-3", "claude-3-5-sonnet-20241022"]
+            }
+        }
+        save_config(default_config)
+        config = default_config
+    else:
+        with open(CONFIG_FILE, 'r') as f:
+            config = json.load(f)
+            
+    # Override with environment variables if present
+    if os.getenv("OPENAI_API_KEY"):
+        config["api_keys"]["openai"] = os.getenv("OPENAI_API_KEY")
+        
+    if os.getenv("GOOGLE_API_KEY"):
+        config["api_keys"]["google"] = os.getenv("GOOGLE_API_KEY")
+
+    if os.getenv("ANTHROPIC_API_KEY"):
+        config["api_keys"]["anthropic"] = os.getenv("ANTHROPIC_API_KEY")
+    
+    if os.getenv("OPENROUTER_API_KEY"):
+        config["api_keys"]["openrouter"] = os.getenv("OPENROUTER_API_KEY")
+        
+    return config
+
+
+def save_config(config):
+    """Save configuration to config.json"""
+    with open(CONFIG_FILE, 'w') as f:
+        json.dump(config, f, indent=2)
+
+
+def setup_api_keys(config):
+    """Interactive setup for API keys if missing"""
+    needs_save = False
+    
+    # Check OpenAI key
+    if not config["api_keys"]["openai"]:
+        openai_key = os.environ.get("OPENAI_API_KEY", "")
+        if not openai_key:
+            print("\n🔑 OpenAI API Key not found.")
+            openai_key = input("Enter your OpenAI API key (or press Enter to skip): ").strip()
+        
+        if openai_key:
+            config["api_keys"]["openai"] = openai_key
+            needs_save = True
+    
+    # Check Google key
+    if not config["api_keys"]["google"]:
+        google_key = os.environ.get("GOOGLE_API_KEY", "")
+        if not google_key:
+            print("\n🔑 Google Gemini API Key not found.")
+            google_key = input("Enter your Gemini API key (or press Enter to skip): ").strip()
+        
+        if google_key:
+            config["api_keys"]["google"] = google_key
+            needs_save = True
+
+    # Check Anthropic key
+    if not config["api_keys"].get("anthropic"):
+        anthropic_key = os.environ.get("ANTHROPIC_API_KEY", "")
+        if not anthropic_key:
+            print("\n🔑 Anthropic API Key not found.")
+            anthropic_key = input("Enter your Anthropic API key (or press Enter to skip): ").strip()
+        
+        if anthropic_key:
+            if "anthropic" not in config["api_keys"]:
+                config["api_keys"]["anthropic"] = ""
+            config["api_keys"]["anthropic"] = anthropic_key
+            needs_save = True
+    
+    if needs_save:
+        save_config(config)
+        print("✓ API keys saved to config.json\n")
+    
+    return config

@@ -1,0 +1,12 @@
+{
+    "name": "John Doe",
+    "location": "Helsinki, Finland",
+    "timezone": "Europe/Helsinki",
+    "language": "Finnish",
+    "occupation": "Software Developer",
+    "bio": "Tech enthusiast who loves building things.",
+    "preferences": {
+        "communication_style": "direct",
+        "detail_level": "balanced"
+    }
+}

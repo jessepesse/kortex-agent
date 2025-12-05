@@ -1,0 +1,8 @@
+aiohttp
+anthropic
+flask[async]
+flask-cors
+google-generativeai
+openai
+PyPDF2
+python-dotenv

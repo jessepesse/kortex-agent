@@ -1,0 +1,520 @@
+/* ===========================================
+   SIDEBAR - RESPONSIVE LAYOUT
+   =========================================== */
+
+/* Base Sidebar - Desktop First */
+.sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 300px;
+    background-color: var(--card-bg);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+}
+
+/* Desktop (large): Always visible, full width */
+@media (min-width: 1025px) {
+    .sidebar {
+        transform: translateX(0) !important;
+        width: 300px;
+    }
+
+    .sidebar-toggle {
+        display: none !important;
+    }
+}
+
+/* Tablet: Slightly narrower sidebar */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .sidebar {
+        transform: translateX(0) !important;
+        width: 280px;
+    }
+
+    .sidebar-toggle {
+        display: none !important;
+    }
+}
+
+/* Mobile: Off-canvas */
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-100%);
+        width: 85vw;
+        max-width: 300px;
+        box-shadow: 4px 0 20px rgba(0, 0, 0, 0.5);
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+    }
+}
+
+/* Toggle Button - Only visible on mobile */
+.sidebar-toggle {
+    position: fixed;
+    left: 16px;
+    top: 16px;
+    z-index: 101;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    transition: all 0.3s ease;
+}
+
+.sidebar-toggle:hover {
+    background-color: var(--card-hover);
+}
+
+.sidebar-toggle.open {
+    left: 296px;
+}
+
+@media (max-width: 768px) {
+    .sidebar-toggle.open {
+        display: none;
+        /* Hide toggle when sidebar is open - use header close button instead */
+    }
+}
+
+/* ===========================================
+   HEADER
+   =========================================== */
+.sidebar-header {
+    padding: 1.25rem 1.5rem;
+    padding-top: calc(1.25rem + var(--safe-area-top, 0px));
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+    min-height: 64px;
+}
+
+.sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #ec4899;
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.sidebar-header h1 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Close button - Only on mobile */
+.sidebar-close-mobile {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 1.4rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    transition: color 0.2s;
+}
+
+.sidebar-close-mobile:hover {
+    color: var(--text-primary);
+}
+
+@media (max-width: 768px) {
+    .sidebar-close-mobile {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+    }
+
+    .sidebar-close-mobile:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+}
+
+/* ===========================================
+   CONTEXT WIDGET
+   =========================================== */
+.context-widget-wrapper {
+    padding: 1rem;
+    flex-shrink: 0;
+}
+
+.live-context {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 1rem;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.context-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.context-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.context-item .label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.context-item .value {
+    font-size: 0.75rem;
+    color: var(--accent-color);
+    font-weight: 600;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 4px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.progress {
+    height: 100%;
+    background: linear-gradient(90deg, #8b5cf6 0%, #3b82f6 100%);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+/* ===========================================
+   CONTENT & HISTORY
+   =========================================== */
+.sidebar-content {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.new-chat-btn {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 1.5rem;
+    flex-shrink: 0;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.new-chat-btn:hover {
+    background-color: #7c3aed;
+    transform: translateY(-1px);
+}
+
+.new-chat-btn:active {
+    transform: translateY(0);
+}
+
+.history-list {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+/* History Groups */
+.history-group {
+    display: flex;
+    flex-direction: column;
+    scroll-behavior: smooth;
+}
+
+/* Pinned Section */
+.history-group.pinned-section {
+    max-height: 240px;
+    overflow-y: auto;
+    flex-shrink: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+}
+
+/* Recent Section */
+.history-group.recent-section {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+}
+
+.history-group h3 {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin: 0 0 0.5rem 0;
+    padding: 8px 0.5rem;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    background: var(--card-bg);
+    z-index: 1;
+    letter-spacing: 0.05em;
+}
+
+/* History Item */
+.history-item-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 0.25rem;
+    padding-right: 4px;
+}
+
+.history-item {
+    flex: 1;
+    text-align: left;
+    padding: 0.75rem;
+    background: none;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    min-width: 0;
+    color: inherit;
+}
+
+.history-item:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.history-item .title {
+    display: block;
+    color: var(--text-primary);
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.9rem;
+}
+
+.history-item .preview {
+    display: block;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Pin Button */
+.pin-chat-btn {
+    opacity: 0;
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    cursor: pointer;
+    padding: 6px 8px;
+    border-radius: 6px;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.pin-chat-btn.pinned {
+    opacity: 1;
+    color: #fbbf24;
+}
+
+.history-item-wrapper:hover .pin-chat-btn {
+    opacity: 0.6;
+}
+
+.history-item-wrapper:hover .pin-chat-btn.pinned {
+    opacity: 1;
+}
+
+.pin-chat-btn:hover {
+    opacity: 1 !important;
+    background-color: rgba(251, 191, 36, 0.1);
+    transform: scale(1.1);
+}
+
+/* Delete Button */
+.delete-chat-btn {
+    opacity: 0;
+    background: none;
+    border: none;
+    color: #ef4444;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.history-item-wrapper:hover .delete-chat-btn {
+    opacity: 0.6;
+}
+
+.delete-chat-btn:hover {
+    opacity: 1 !important;
+    background-color: rgba(239, 68, 68, 0.1);
+}
+
+/* Touch devices: Always show action buttons (no hover on mobile) */
+@media (max-width: 1024px) {
+    .pin-chat-btn {
+        opacity: 0.5;
+    }
+
+    .pin-chat-btn.pinned {
+        opacity: 1;
+    }
+
+    .delete-chat-btn {
+        opacity: 0.4;
+    }
+
+    .pin-chat-btn:active,
+    .delete-chat-btn:active {
+        opacity: 1;
+        transform: scale(0.95);
+    }
+}
+
+/* ===========================================
+   FOOTER
+   =========================================== */
+.sidebar-footer {
+    padding: 1rem;
+    border-top: 1px solid var(--border-color);
+    flex-shrink: 0;
+}
+
+.settings-btn {
+    width: 100%;
+    padding: 0.75rem;
+    background: none;
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+}
+
+.settings-btn:hover {
+    border-color: var(--text-secondary);
+    color: var(--text-primary);
+}
+
+/* ===========================================
+   SCROLLBAR STYLING
+   =========================================== */
+.sidebar::-webkit-scrollbar,
+.sidebar-content::-webkit-scrollbar,
+.history-group::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track,
+.sidebar-content::-webkit-scrollbar-track,
+.history-group::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb,
+.sidebar-content::-webkit-scrollbar-thumb,
+.history-group::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover,
+.sidebar-content::-webkit-scrollbar-thumb:hover,
+.history-group::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Firefox scrollbar */
+.sidebar,
+.sidebar-content,
+.history-group {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+}
+
+/* ===========================================
+   MOBILE OVERLAY
+   =========================================== */
+@media (max-width: 768px) {
+
+    /* Darken background when sidebar is open */
+    .sidebar.open::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 280px;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: -1;
+    }
+}

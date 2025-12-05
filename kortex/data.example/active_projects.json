@@ -1,0 +1,11 @@
+{
+    "projects": [
+        {
+            "name": "Example Project",
+            "status": "active",
+            "priority": "high",
+            "tasks": [],
+            "notes": ""
+        }
+    ]
+}

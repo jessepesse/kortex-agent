@@ -1,0 +1,250 @@
+.mega-view {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding: 20px;
+    background: linear-gradient(135deg, rgba(255, 69, 0, 0.05) 0%, rgba(255, 140, 0, 0.05) 100%);
+    border-radius: 16px;
+    border: 2px solid rgba(255, 69, 0, 0.3);
+    margin: 20px 0;
+    box-shadow: 0 8px 32px rgba(255, 69, 0, 0.2);
+}
+
+.mega-header {
+    text-align: center;
+    border-bottom: 2px solid rgba(255, 69, 0, 0.3);
+    padding-bottom: 16px;
+}
+
+.mega-header h3 {
+    margin: 0 0 8px 0;
+    color: #ff4500;
+    font-size: 1.5em;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    text-shadow: 0 0 20px rgba(255, 69, 0, 0.5);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.8;
+    }
+}
+
+.mega-subtitle {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.9em;
+}
+
+/* Mega Verdict */
+.mega-verdict {
+    background: var(--card-bg);
+    border: 2px solid rgba(255, 69, 0, 0.4);
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 4px 20px rgba(255, 69, 0, 0.1);
+}
+
+.verdict-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 69, 0, 0.2);
+}
+
+.verdict-icon {
+    font-size: 1.8em;
+    animation: rotate 4s linear infinite;
+}
+
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.verdict-header h4 {
+    margin: 0;
+    color: #ff8c00;
+    font-size: 1.2em;
+}
+
+.verdict-content {
+    color: var(--text-primary);
+    line-height: 1.6;
+}
+
+/* Council Sections (Collapsed) */
+.council-section {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.council-section:hover {
+    border-color: rgba(255, 69, 0, 0.3);
+}
+
+.collapse-toggle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    cursor: pointer;
+    font-size: 1em;
+    transition: all 0.2s ease;
+}
+
+.collapse-toggle:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.toggle-icon {
+    font-size: 1.3em;
+}
+
+.vote-count {
+    margin-left: auto;
+    color: var(--text-secondary);
+    font-size: 0.9em;
+}
+
+.collapse-content {
+    padding: 20px;
+    border-top: 1px solid var(--border-color);
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.elite-content {
+    border-left: 3px solid var(--accent-color);
+}
+
+.hive-content {
+    border-left: 3px solid #fbbf24;
+}
+
+/* ===========================================
+   RESPONSIVE STYLES
+   =========================================== */
+
+/* Tablet */
+@media (max-width: 1024px) {
+    .mega-view {
+        padding: 16px;
+        gap: 20px;
+    }
+
+    .mega-verdict {
+        padding: 20px;
+    }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .mega-view {
+        padding: 12px;
+        gap: 16px;
+        margin: 12px 0;
+        border-radius: 12px;
+        border-width: 1px;
+    }
+
+    .mega-header {
+        padding-bottom: 12px;
+    }
+
+    .mega-header h3 {
+        font-size: 1.1em;
+        letter-spacing: 2px;
+    }
+
+    .mega-subtitle {
+        font-size: 0.85em;
+    }
+
+    .mega-verdict {
+        padding: 14px;
+        border-radius: 10px;
+    }
+
+    .verdict-header {
+        gap: 10px;
+        margin-bottom: 12px;
+        padding-bottom: 10px;
+    }
+
+    .verdict-icon {
+        font-size: 1.5em;
+    }
+
+    .verdict-header h4 {
+        font-size: 1em;
+    }
+
+    .verdict-content {
+        font-size: 0.9em;
+    }
+
+    .collapse-toggle {
+        padding: 12px;
+        font-size: 0.95em;
+    }
+
+    .collapse-content {
+        padding: 14px;
+    }
+}
+
+/* Small phones */
+@media (max-width: 480px) {
+    .mega-view {
+        padding: 10px;
+        margin: 8px 0;
+    }
+
+    .mega-header h3 {
+        font-size: 1em;
+        letter-spacing: 1px;
+    }
+
+    .mega-verdict {
+        padding: 12px;
+    }
+
+    .verdict-content {
+        font-size: 0.85em;
+        line-height: 1.5;
+    }
+}

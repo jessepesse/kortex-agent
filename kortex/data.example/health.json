@@ -1,0 +1,13 @@
+{
+    "current_state": {
+        "physical": "Good",
+        "mental": "Focused",
+        "energy": 7,
+        "sleep_quality": "Good",
+        "last_updated": "2025-01-01"
+    },
+    "conditions": [],
+    "medications": [],
+    "exercise_log": [],
+    "notes": []
+}

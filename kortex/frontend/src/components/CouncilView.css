@@ -1,0 +1,307 @@
+.council-view {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding: 20px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    margin: 20px 0;
+}
+
+.council-header h3 {
+    margin: 0;
+    color: var(--accent-color);
+    font-size: 1.2em;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-align: center;
+}
+
+/* Hive Mode - Neon Yellow/Amber */
+.council-view.hive-mode .council-header h3 {
+    color: #fbbf24;
+    /* Amber-400 */
+    text-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+}
+
+.council-view.hive-mode .council-card {
+    border-color: rgba(251, 191, 36, 0.3);
+}
+
+.council-view.hive-mode .council-card:hover {
+    border-color: #fbbf24;
+    box-shadow: 0 4px 20px rgba(251, 191, 36, 0.2);
+}
+
+.council-view.hive-mode .member-header {
+    border-bottom-color: rgba(251, 191, 36, 0.2);
+}
+
+.council-view.hive-mode .chairman-verdict {
+    border-color: rgba(251, 191, 36, 0.3);
+}
+
+.council-view.hive-mode .chairman-header h4 {
+    color: #fbbf24;
+}
+
+
+.council-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px;
+}
+
+.council-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: transform 0.2s;
+}
+
+.council-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--text-secondary);
+}
+
+.member-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.member-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.9em;
+}
+
+.member-content {
+    font-size: 0.85em;
+    color: var(--text-secondary);
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.chairman-verdict {
+    background: linear-gradient(145deg, rgba(139, 92, 246, 0.1), rgba(0, 0, 0, 0.4));
+    border: 1px solid var(--accent-color);
+    border-radius: 12px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+}
+
+.chairman-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.chairman-header h4 {
+    margin: 0;
+    color: var(--accent-color);
+    font-size: 1.1em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.chairman-content {
+    color: var(--text-primary);
+    line-height: 1.6;
+}
+
+/* Loading State */
+.loading-card {
+    min-height: 150px;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: var(--text-secondary);
+}
+
+.loading-spinner {
+    width: 30px;
+    height: 30px;
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    border-top-color: var(--accent-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 12px;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Peer Reviews Section */
+.peer-reviews-section {
+    background: linear-gradient(145deg, rgba(255, 165, 0, 0.05), rgba(0, 0, 0, 0.3));
+    border: 1px solid rgba(255, 165, 0, 0.3);
+    border-radius: 12px;
+    padding: 20px;
+    margin: 16px 0;
+}
+
+.peer-reviews-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.peer-reviews-header h4 {
+    margin: 0;
+    color: rgba(255, 165, 0, 0.9);
+    font-size: 1em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.review-icon {
+    font-size: 1.2em;
+}
+
+.peer-reviews-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 12px;
+}
+
+.peer-review-card {
+    background-color: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 12px;
+}
+
+.reviewer-label {
+    font-weight: 600;
+    color: rgba(255, 165, 0, 0.8);
+    font-size: 0.85em;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.review-content {
+    font-size: 0.85em;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+/* Scrollbar for member content */
+.member-content::-webkit-scrollbar {
+    width: 4px;
+}
+
+.member-content::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 2px;
+}
+
+/* ===========================================
+   RESPONSIVE STYLES
+   =========================================== */
+
+/* Tablet */
+@media (max-width: 1024px) {
+    .council-view {
+        padding: 16px;
+        gap: 20px;
+    }
+
+    .council-grid {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 12px;
+    }
+
+    .peer-reviews-grid {
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }
+}
+
+/* Mobile - Stack everything vertically */
+@media (max-width: 768px) {
+    .council-view {
+        padding: 12px;
+        gap: 16px;
+        margin: 12px 0;
+        border-radius: 12px;
+    }
+
+    .council-header h3 {
+        font-size: 1em;
+        letter-spacing: 1px;
+    }
+
+    .council-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .council-card {
+        padding: 12px;
+    }
+
+    .member-content {
+        max-height: 150px;
+        font-size: 0.8em;
+    }
+
+    .chairman-verdict {
+        padding: 16px;
+    }
+
+    .chairman-header h4 {
+        font-size: 1em;
+    }
+
+    .peer-reviews-section {
+        padding: 14px;
+    }
+
+    .peer-reviews-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .peer-review-card {
+        padding: 10px;
+    }
+}
+
+/* Small phones */
+@media (max-width: 480px) {
+    .council-view {
+        padding: 10px;
+        margin: 8px 0;
+    }
+
+    .council-card {
+        padding: 10px;
+        gap: 8px;
+    }
+
+    .member-name {
+        font-size: 0.85em;
+    }
+
+    .member-content {
+        max-height: 120px;
+    }
+
+    .chairman-verdict {
+        padding: 12px;
+    }
+}

@@ -1,0 +1,65 @@
+# =============================================================================
+# DOCKER IGNORE - Exclude from Docker builds
+# =============================================================================
+
+# Git
+.git
+.gitignore
+
+# Documentation (keep README for reference)
+*.md
+!README.md
+
+# Environment and config
+.env
+.env.local
+.env.example
+config.json
+
+# User data
+data/
+
+# Python artifacts
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+.pytest_cache/
+.coverage
+*.egg-info/
+
+# Node artifacts
+node_modules/
+npm-debug.log*
+.eslintcache
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# macOS
+.DS_Store
+._*
+
+# Test files
+test_*.py
+tests/
+
+# Scripts not needed in container
+scripts/
+fix_titles.sh
+
+# Backups
+backups/
+*.zip
+
+# Docker files (don't need Docker in Docker)
+Dockerfile
+docker-compose.yml
+.dockerignore
