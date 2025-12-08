@@ -73,4 +73,4 @@ if __name__ == '__main__':
     if debug_mode:
         print("⚠️  WARNING: Debug mode is ENABLED")
     
-    app.run(host='0.0.0.0', port=5001, debug=debug_mode)
+    app.run(host='0.0.0.0', port=5001, debug=debug_mode) # nosec B104
