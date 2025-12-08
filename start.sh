@@ -22,12 +22,9 @@ trap cleanup SIGINT SIGTERM
 
 # Start backend
 echo "🔧 Starting Flask backend (port 5001)..."
-cd backend
-export FLASK_APP=app.py
-export PYTHONPATH="$PYTHONPATH:$(dirname $(pwd))"
-../venv/bin/python -m flask run --host=0.0.0.0 --port=5001 &
+export PYTHONPATH="$(pwd)"
+./venv/bin/python backend/app.py &
 BACKEND_PID=$!
-cd ..
 
 # Wait a bit for backend to start
 sleep 2
