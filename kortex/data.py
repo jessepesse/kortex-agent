@@ -100,15 +100,39 @@ def get_all_json_files() -> list[str]:
     return json_files
 
 
+def validate_filename(filename: str) -> Path:
+    """Validate and resolve filename to ensure it stays within DATA_DIR.
+    
+    Prevents Path Traversal attacks.
+    """
+    # Ensure no directory separators in filename
+    if "/" in filename or "\\" in filename:
+        raise ValueError(f"Invalid filename: {filename}. Directory separators not allowed.")
+        
+    filepath = (DATA_DIR / filename).resolve()
+    
+    # Verify the resolved path starts with DATA_DIR
+    if not str(filepath).startswith(str(DATA_DIR.resolve())):
+        raise ValueError(f"Access denied: {filename} points outside safe directory.")
+        
+    return filepath
+
+
 def load_json_file(filename: str) -> JsonDict:
     """Load a JSON file from the data directory.
     
     If the file doesn't exist, creates it with default data.
     """
-    filepath = DATA_DIR / filename
+    try:
+        filepath = validate_filename(filename)
+    except ValueError as e:
+        logger.error(str(e))
+        return {}
+        
     DATA_DIR.mkdir(exist_ok=True)
     
-    key = filename.replace('.json', '')
+    # Extract key from basename (handle .json extension safely)
+    key = Path(filename).stem
     default_data = DEFAULT_DATA.get(key, {})
     
     try:
@@ -125,7 +149,11 @@ def load_json_file(filename: str) -> JsonDict:
 
 def save_json_file(filename: str, data: JsonDict) -> str:
     """Save data to a JSON file in the data directory."""
-    filepath = DATA_DIR / filename
+    try:
+        filepath = validate_filename(filename)
+    except ValueError as e:
+        return f"Error: {str(e)}"
+        
     DATA_DIR.mkdir(exist_ok=True)
     with open(filepath, 'w') as f:
         json.dump(data, f, indent=2)

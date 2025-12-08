@@ -26,8 +26,9 @@ def create_app():
     """
     application = Flask(__name__)
     
-    # Configure CORS properly - allow all origins in development
-    CORS(application)
+    # Configure CORS properly - allow frontend origin
+    allowed_origins = os.getenv('ALLOWED_ORIGINS', 'http://localhost:3000').split(',')
+    CORS(application, resources={r"/api/*": {"origins": allowed_origins}}, supports_credentials=True)
     
     # Register all routes from modular structure
     register_all_routes(application)
