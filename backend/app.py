@@ -16,20 +16,33 @@ from flask_cors import CORS
 from routes import register_all_routes
 from errors import register_error_handlers
 
-app = Flask(__name__)
 
-# Configure CORS properly - allow all origins in development
-CORS(app)
+def create_app():
+    """Application factory for Flask app.
+    
+    Returns:
+        Flask app instance configured with all routes and error handlers.
+    """
+    application = Flask(__name__)
+    
+    # Configure CORS properly - allow all origins in development
+    CORS(application)
+    
+    # Register all routes from modular structure
+    register_all_routes(application)
+    
+    # Register global error handlers for consistent error responses
+    register_error_handlers(application)
+    
+    @application.route('/health')
+    def health():
+        return {"status": "ok", "service": "Kortex Agent Backend"}
+    
+    return application
 
-# Register all routes from modular structure
-register_all_routes(app)
 
-# Register global error handlers for consistent error responses
-register_error_handlers(app)
-
-@app.route('/health')
-def health():
-    return {"status": "ok", "service": "Kortex Agent Backend"}
+# Global app instance for direct execution
+app = create_app()
 
 
 # Start background services
