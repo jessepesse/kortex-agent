@@ -6,6 +6,7 @@ import json
 import time
 import uuid
 import os
+import re
 from pathlib import Path
 from typing import Any, Optional
 
@@ -106,20 +107,19 @@ def validate_filename(filename: str) -> Path:
     
     Prevents Path Traversal attacks by enforcing basename.
     """
-    # Force basename to prevent directory traversal attempts immediately
-    safe_name = os.path.basename(filename)
-    
-    # Original check for sanity
-    if "/" in filename or "\\" in filename:
-        # If the original input had separators, it might have been an attack attempt
-        # We'll use the safe basename, but log warning could be good (skipping log for simplicity)
-        pass
-        
-    filepath = (DATA_DIR / safe_name).resolve()
+    # Draconian whitelist: Only allow alphanumeric, dots, underscores, dashes
+    if not re.match(r'^[a-zA-Z0-9_.-]+$', filename):
+        # Fallback: try basename and check again, or just reject
+        safe_name = os.path.basename(filename)
+        if not re.match(r'^[a-zA-Z0-9_.-]+$', safe_name):
+            raise ValueError(f"Invalid filename: {filename}. Only alphanumeric, dot, underscore, dash allowed.")
+        filename = safe_name
+
+    filepath = (DATA_DIR / filename).resolve()
     
     # Verify the resolved path starts with DATA_DIR
     if not str(filepath).startswith(str(DATA_DIR.resolve())):
-        raise ValueError(f"Access denied: {filename} points outside safe directory.")
+        raise ValueError("Access denied: path points outside safe directory.")
         
     return filepath
 

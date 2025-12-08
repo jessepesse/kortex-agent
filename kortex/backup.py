@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any, Optional, List, Dict
 
 from .config import DATA_DIR, CONFIG_FILE
-from .data import get_conversations_dir, list_conversations, validate_filename
+from .data import get_conversations_dir, list_conversations, validate_filename, validate_chat_id
 
 
 def create_backup(conversation_ids: Optional[List[str]] = None) -> bytes:
@@ -49,6 +49,11 @@ def create_backup(conversation_ids: Optional[List[str]] = None) -> bytes:
             elif conversation_ids:
                 # Include only selected conversations
                 for conv_id in conversation_ids:
+                    try:
+                        validate_chat_id(conv_id)
+                    except ValueError:
+                        continue
+                        
                     conv_file = conv_dir / f"{conv_id}.json"
                     if conv_file.exists():
                         relative_path = f"conversations/{conv_file.name}"

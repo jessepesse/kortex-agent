@@ -70,15 +70,15 @@ def main():
     # Get API key
     api_key = config["api_keys"].get(provider, "")
     if not api_key:
-        print(f"\n❌ No API key for {provider}. Please add it to config.json")
+        print("\n❌ No API key found for selected provider. Please check config.json")
         return
     
     # Initialize LLM client
     try:
         llm = LLMClient(provider, model, api_key)
-        print(f"\n✓ Using {provider}: {model}\n")
+        print("\n✓ Model initialized successfully\n")
     except Exception:
-        print(f"\n❌ Error initializing {provider}: Authentication failed or connection error.")
+        print("\n❌ Error initializing AI provider: Authentication failed or connection error.")
         return
     
     print("="*60)
@@ -109,7 +109,7 @@ def main():
             api_key = config["api_keys"].get(provider, "")
             try:
                 llm = LLMClient(provider, model, api_key)
-                print(f"✓ Switched to {provider}: {model}")
+                print("✓ Switched AI provider successfully")
                 chat_history = []
             except Exception:
                 print("❌ Error: Could not switch model.")
