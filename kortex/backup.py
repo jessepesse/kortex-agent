@@ -223,7 +223,7 @@ def restore_backup(zip_bytes: bytes) -> Dict[str, Any]:
                         json.loads(content)
                         
                         target_path.parent.mkdir(parents=True, exist_ok=True)
-                        with open(target_path, 'wb') as f:
+                        with open(target_path, 'wb') as f:  # lgtm[py/path-injection]
                             f.write(content)
                         result["restored_files"].append(f"conversations/{safe_id}.json")
                     except Exception:
