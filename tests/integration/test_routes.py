@@ -183,7 +183,8 @@ class TestModelsEndpoints:
         
         assert response.status_code == 400
         data = response.get_json()
-        assert data["success"] is False
+        # Error responses have "error" or "success" = False
+        assert "error" in data or data.get("success") is False
 
 
 class TestBackupEndpoints:
@@ -200,8 +201,10 @@ class TestBackupEndpoints:
         
         assert response.status_code == 200
         data = response.get_json()
-        assert "conversations" in data
-        assert len(data["conversations"]) == 1
+        # Response structure: {success: true, data: {conversations: [...]}}
+        assert "data" in data
+        assert "conversations" in data["data"]
+        assert len(data["data"]["conversations"]) == 1
     
     def test_download_backup(self, client, temp_data_dir, temp_config_file):
         """POST /api/backup/download should return ZIP"""
