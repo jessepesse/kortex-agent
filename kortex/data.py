@@ -263,7 +263,10 @@ def load_conversation(chat_id: str) -> Optional[JsonDict]:
         return None
         
     conv_dir = get_conversations_dir()
-    filepath = conv_dir / f"{chat_id}.json"
+    filepath = (conv_dir / f"{chat_id}.json").resolve()
+    # Prevent path traversal: ensure resolved path is within conv_dir
+    if not str(filepath).startswith(str(conv_dir.resolve())):
+        return None
     
     try:
         with open(filepath, 'r') as f:
