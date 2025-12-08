@@ -33,10 +33,20 @@ kortex-agent/
 │   └── tools.py         # Function calling tools
 ├── backend/             # Flask API
 │   ├── app.py           # Entry point
-│   └── routes.py        # API endpoints
+│   ├── errors.py        # Error handlers & decorators
+│   └── routes/          # Modular API routes
+│       ├── chat.py      # /api/chat
+│       ├── council.py   # /api/council, /api/hive, /api/mega
+│       ├── history.py   # /api/conversations
+│       ├── data.py      # /api/data
+│       ├── config.py    # /api/config
+│       └── backup.py    # /api/backup
 ├── frontend/src/        # React app
 │   ├── components/      # UI components
 │   └── services/api.js  # API client
+├── scripts/             # Utility scripts
+│   ├── bump_version.sh  # Version sync
+│   └── security_check.sh # Bandit scan
 └── data/                # User data (gitignored)
 ```
 
@@ -98,9 +108,10 @@ Located in `data/` (auto-created on first run):
 
 ### Adding a new AI mode
 1. Create handler in `kortex/ai/`
-2. Add route in `backend/routes.py`
-3. Add API function in `frontend/src/services/api.js`
-4. Create UI component in `frontend/src/components/`
+2. Add route in `backend/routes/council.py` (or new file)
+3. Register in `backend/routes/__init__.py`
+4. Add API function in `frontend/src/services/api.js`
+5. Create UI component in `frontend/src/components/`
 
 ### Modifying function calling tools
 1. Edit `kortex/tools.py`
