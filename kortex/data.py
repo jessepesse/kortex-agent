@@ -203,12 +203,23 @@ def generate_chat_id() -> str:
     return f"{timestamp}_{unique_id}"
 
 
+def validate_chat_id(chat_id: str) -> str:
+    """Validate chat ID format to prevent path traversal.
+    
+    Chat IDs should be alphanumeric with underscores.
+    """
+    if not chat_id or not chat_id.replace('_', '').isalnum():
+        raise ValueError(f"Invalid chat ID: {chat_id}")
+    return chat_id
+
+
 def save_conversation(
     chat_id: str, 
     messages: list[ConversationMessage], 
     title: Optional[str] = None
 ) -> str:
     """Save a conversation to a JSON file."""
+    validate_chat_id(chat_id)
     conv_dir = get_conversations_dir()
     filepath = conv_dir / f"{chat_id}.json"
     
@@ -238,6 +249,11 @@ def save_conversation(
 
 def load_conversation(chat_id: str) -> Optional[JsonDict]:
     """Load a conversation by ID."""
+    try:
+        validate_chat_id(chat_id)
+    except ValueError:
+        return None
+        
     conv_dir = get_conversations_dir()
     filepath = conv_dir / f"{chat_id}.json"
     
@@ -277,6 +293,12 @@ def list_conversations() -> list[JsonDict]:
 
 def delete_conversation(chat_id: str) -> bool:
     """Delete a conversation by ID."""
+    try:
+        validate_chat_id(chat_id)
+    except ValueError as e:
+        logger.error(str(e))
+        return False
+        
     conv_dir = get_conversations_dir()
     filepath = conv_dir / f"{chat_id}.json"
     
@@ -292,6 +314,12 @@ def delete_conversation(chat_id: str) -> bool:
 
 def toggle_pin(chat_id: str) -> Optional[bool]:
     """Toggle pinned status of a conversation."""
+    try:
+        validate_chat_id(chat_id)
+    except ValueError as e:
+        logger.error(str(e))
+        return None
+        
     conv_dir = get_conversations_dir()
     filepath = conv_dir / f"{chat_id}.json"
     

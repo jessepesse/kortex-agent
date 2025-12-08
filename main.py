@@ -78,7 +78,11 @@ def main():
         llm = LLMClient(provider, model, api_key)
         print(f"\n✓ Using {provider}: {model}\n")
     except Exception as e:
-        print(f"\n❌ Error initializing {provider}: {e}")
+        # Sanitize sensitive info from error
+        error_msg = str(e)
+        if "key" in error_msg.lower():
+            error_msg = "Authentication failed (check API key)"
+        print(f"\n❌ Error initializing {provider}: {error_msg}")
         return
     
     print("="*60)
@@ -112,7 +116,11 @@ def main():
                 print(f"✓ Switched to {provider}: {model}")
                 chat_history = []
             except Exception as e:
-                print(f"❌ Error: {e}")
+                # Sanitize sensitive info
+                error_msg = str(e)
+                if "key" in error_msg.lower():
+                    error_msg = "Authentication failed"
+                print(f"❌ Error: {error_msg}")
             continue
         
         # Load context and build prompt

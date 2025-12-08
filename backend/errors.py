@@ -118,7 +118,15 @@ def handle_exceptions(f: F) -> F:
         except Exception as e:
             # Log the full traceback for debugging
             traceback.print_exc()
-            return error_response(f"Internal server error: {str(e)}", 500)
+            
+            # Check debug mode
+            import os
+            debug_mode = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
+            
+            if debug_mode:
+                return error_response(f"Internal server error: {str(e)}", 500)
+            else:
+                return error_response("An internal server error occurred.", 500)
     
     return wrapper  # type: ignore
 
@@ -141,7 +149,15 @@ def handle_async_exceptions(f: F) -> F:
             return error_response(e.message, e.status_code, e.details)
         except Exception as e:
             traceback.print_exc()
-            return error_response(f"Internal server error: {str(e)}", 500)
+            
+            # Check debug mode
+            import os
+            debug_mode = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
+            
+            if debug_mode:
+                return error_response(f"Internal server error: {str(e)}", 500)
+            else:
+                return error_response("An internal server error occurred.", 500)
     
     return wrapper  # type: ignore
 
