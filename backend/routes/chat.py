@@ -188,5 +188,5 @@ DO NOT SAY:
             
             result = ai_handler.execute_function(function_name, args)
             return jsonify(result)
-        except Exception as e:
-            return jsonify({"success": False, "message": str(e)}), 500
+        except Exception:
+            return jsonify({"success": False, "message": "Execution failed"}), 500

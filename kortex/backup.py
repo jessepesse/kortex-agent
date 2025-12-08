@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any, Optional, List, Dict
 
 from .config import DATA_DIR, CONFIG_FILE
-from .data import get_conversations_dir, list_conversations, validate_filename, validate_chat_id
+from .data import get_conversations_dir, list_conversations, validate_filename, validate_chat_id, build_safe_conv_path
 
 
 def create_backup(conversation_ids: Optional[List[str]] = None) -> bytes:
@@ -212,12 +212,12 @@ def restore_backup(zip_bytes: bytes) -> Dict[str, Any]:
                 
                 elif filename.startswith("conversations/") and filename.endswith(".json"):
                     # Extract to conversations dir
-                    target_name = filename.replace("conversations/", "")
+                    target_name = filename.replace("conversations/", "").replace(".json", "")
                     
                     try:
-                        # Validate path to prevent Zip Slip
-                        # validate_filename validates against DATA_DIR
-                        target_path = validate_filename(f"conversations/{target_name}")
+                        # Validate ID and use safe path builder
+                        safe_id = validate_chat_id(target_name)
+                        target_path = build_safe_conv_path(safe_id)
                         
                         content = zf.read(filename)
                         json.loads(content)
@@ -225,9 +225,9 @@ def restore_backup(zip_bytes: bytes) -> Dict[str, Any]:
                         target_path.parent.mkdir(parents=True, exist_ok=True)
                         with open(target_path, 'wb') as f:
                             f.write(content)
-                        result["restored_files"].append(f"conversations/{target_name}")
-                    except Exception as e:
-                        result["errors"].append(f"Virhe palautettaessa {filename}: {str(e)}")
+                        result["restored_files"].append(f"conversations/{safe_id}.json")
+                    except Exception:
+                        result["errors"].append("Error restoring conversation file")
                 
                 elif filename == "config.json":
                     # Restore config

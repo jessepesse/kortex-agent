@@ -116,9 +116,13 @@ def validate_filename(filename: str) -> Path:
          raise ValueError(f"Invalid filename: {filename} contains no valid characters.")
          
     # Use the reconstructed safe_name, ignoring original filename entirely
-    filename = safe_name
-
-    filepath = (DATA_DIR / filename).resolve()
+    # CodeQL: Constructing using only the safe_name constant
+    safe_filename = safe_name
+    del filename  # Prevent accidental use of tainted variable
+    
+    # Construct path from safe data
+    data_dir_resolved = DATA_DIR.resolve()
+    filepath = (data_dir_resolved / safe_filename).resolve()
     
     # Verify the resolved path starts with DATA_DIR
     if not str(filepath).startswith(str(DATA_DIR.resolve())):
@@ -230,6 +234,18 @@ def validate_chat_id(chat_id: str) -> str:
     return safe_id
 
 
+def build_safe_conv_path(safe_id: str) -> Path:
+    """Build conversation file path from validated ID.
+    
+    CodeQL: This function only accepts already-validated IDs.
+    The path is constructed using only safe data.
+    """
+    conv_dir = get_conversations_dir().resolve()
+    # Construct filename from reconstructed safe characters
+    safe_filename = "".join(c for c in safe_id if c.isalnum() or c == '_') + ".json"
+    return conv_dir / safe_filename
+
+
 def save_conversation(
     chat_id: str, 
     messages: list[ConversationMessage], 
@@ -238,9 +254,8 @@ def save_conversation(
     """Save a conversation to a JSON file."""
     """Save a conversation to a JSON file."""
     # CodeQL: Use returned safe_id to break taint
-    chat_id = validate_chat_id(chat_id)
-    conv_dir = get_conversations_dir()
-    filepath = conv_dir / f"{chat_id}.json"
+    safe_id = validate_chat_id(chat_id)
+    filepath = build_safe_conv_path(safe_id)
     
     # Preserve pinned status if conversation exists
     existing_pinned = False
@@ -253,9 +268,9 @@ def save_conversation(
             pass
     
     data: JsonDict = {
-        "id": chat_id,
+        "id": safe_id,
         "title": title or "New Chat",
-        "timestamp": int(chat_id.split('_')[0]),
+        "timestamp": int(safe_id.split('_')[0]),
         "lastModified": int(time.time()),
         "pinned": existing_pinned,
         "messages": messages
@@ -263,19 +278,18 @@ def save_conversation(
     
     with open(filepath, 'w') as f:
         json.dump(data, f, indent=2)
-    return chat_id
+    return safe_id
 
 
 def load_conversation(chat_id: str) -> Optional[JsonDict]:
     """Load a conversation by ID."""
     """Load a conversation by ID."""
     try:
-        chat_id = validate_chat_id(chat_id)
+        safe_id = validate_chat_id(chat_id)
     except ValueError:
         return None
         
-    conv_dir = get_conversations_dir()
-    filepath = conv_dir / f"{chat_id}.json"
+    filepath = build_safe_conv_path(safe_id)
     
     try:
         with open(filepath, 'r') as f:
@@ -314,13 +328,12 @@ def list_conversations() -> list[JsonDict]:
 def delete_conversation(chat_id: str) -> bool:
     """Delete a conversation by ID."""
     try:
-        chat_id = validate_chat_id(chat_id)
+        safe_id = validate_chat_id(chat_id)
     except ValueError as e:
         logger.error(str(e))
         return False
         
-    conv_dir = get_conversations_dir()
-    filepath = conv_dir / f"{chat_id}.json"
+    filepath = build_safe_conv_path(safe_id)
     
     try:
         if filepath.exists():
@@ -328,20 +341,19 @@ def delete_conversation(chat_id: str) -> bool:
             return True
         return False
     except Exception as e:
-        logger.error(f"Error deleting conversation {chat_id}: {e}")
+        logger.error("Error deleting conversation: IO error")
         return False
 
 
 def toggle_pin(chat_id: str) -> Optional[bool]:
     """Toggle pinned status of a conversation."""
     try:
-        chat_id = validate_chat_id(chat_id)
+        safe_id = validate_chat_id(chat_id)
     except ValueError as e:
         logger.error(str(e))
         return None
         
-    conv_dir = get_conversations_dir()
-    filepath = conv_dir / f"{chat_id}.json"
+    filepath = build_safe_conv_path(safe_id)
     
     try:
         with open(filepath, 'r') as f:
@@ -357,5 +369,5 @@ def toggle_pin(chat_id: str) -> Optional[bool]:
     except FileNotFoundError:
         return None
     except Exception as e:
-        logger.error(f"Error toggling pin for {chat_id}: {e}")
+        logger.error("Error toggling pin: IO error")
         return None

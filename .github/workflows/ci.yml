@@ -19,6 +19,9 @@ jobs:
     name: Run Tests
     runs-on: ubuntu-latest
     
+    permissions:
+      contents: read
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -116,6 +119,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     if: github.event_name != 'pull_request'
+    
+    permissions:
+      contents: read
+      packages: read
     
     steps:
       - name: Checkout code
