@@ -1,0 +1,58 @@
+# Automatic Release Workflow
+# Creates a GitHub Release when a version tag is pushed
+# Alpha/beta tags are marked as pre-release
+
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Generate release notes
+        id: notes
+        run: |
+          # Get previous tag
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          
+          # Generate changelog section
+          if [ -n "$PREV_TAG" ]; then
+            echo "Changes since $PREV_TAG:" > notes.md
+            git log $PREV_TAG..HEAD --pretty=format:"- %s" >> notes.md
+          else
+            echo "Initial release" > notes.md
+          fi
+          
+          echo "NOTES_FILE=notes.md" >> $GITHUB_OUTPUT
+      
+      - name: Check if pre-release
+        id: prerelease
+        run: |
+          TAG=${{ github.ref_name }}
+          if [[ "$TAG" == *"alpha"* ]] || [[ "$TAG" == *"beta"* ]] || [[ "$TAG" == *"rc"* ]]; then
+            echo "IS_PRERELEASE=true" >> $GITHUB_OUTPUT
+          else
+            echo "IS_PRERELEASE=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          body_path: notes.md
+          prerelease: ${{ steps.prerelease.outputs.IS_PRERELEASE }}
+          generate_release_notes: true
