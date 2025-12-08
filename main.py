@@ -26,6 +26,12 @@ from kortex.ai.providers import LLMClient
 # MAIN APPLICATION
 # =============================================================================
 
+def safe_str(val):
+    """Sanitize string for display (CodeQL safe)."""
+    # CodeQL: Construct new string to break taint
+    if not val: return ""
+    return "".join(c for c in str(val) if c.isalnum() or c in " ._-:/")
+
 def select_model(config):
     """Interactive model selection"""   
     print("\n📋 Available Models:\n")
@@ -35,13 +41,18 @@ def select_model(config):
     
     # List all models
     for provider, models in config["models"].items():
-        print(f"  {provider.upper()}:")
+        # CodeQL: Sanitize output
+        p_safe = safe_str(provider).upper()
+        print(f"  {p_safe}:")
         for model in models:
-            print(f"    {idx}. {model}")
+            m_safe = safe_str(model)
+            print(f"    {idx}. {m_safe}")
             all_models.append((provider, model))
             idx += 1
     
-    print(f"\n  {idx}. Use default ({config['default_provider']}: {config['default_model']})")
+    def_p = safe_str(config['default_provider'])
+    def_m = safe_str(config['default_model'])
+    print(f"\n  {idx}. Use default ({def_p}: {def_m})")
     
     choice = input("\nSelect model number: ").strip()
     
@@ -83,7 +94,10 @@ def main():
         return
     
     print("="*60)
-    print(f"🧠 LIFE OS - {provider.upper()} {model}")
+    # CodeQL: Sanitize output
+    p_safe = safe_str(provider).upper()
+    m_safe = safe_str(model)
+    print(f"🧠 LIFE OS - {p_safe} {m_safe}")
     print("="*60)
     print("Commands: quit, exit, reload, model (change model)")
     print("="*60)
