@@ -109,3 +109,11 @@ Located in `data/` (auto-created on first run):
 ### Adding new data files
 1. Add default structure to `DEFAULT_DATA` in `kortex/data.py`
 2. Add example in `data.example/`
+
+### Creating a Release
+1. Update version: `./scripts/bump_version.sh 1.0.0-alphaX`
+2. Update `CHANGELOG.md` with changes
+3. Commit: `git add . && git commit -m "Release vX.X.X"`
+4. Tag: `git tag vX.X.X`
+5. Push: `git push origin main --tags`
+6. GitHub Actions auto-creates Release (alpha/beta = pre-release)
