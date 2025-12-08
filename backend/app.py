@@ -6,8 +6,10 @@ Flask Backend Server for Kortex Agent
 import sys
 from pathlib import Path
 
-# Add parent directory to path for imports
+# Add parent directory to path for kortex imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
+# Add backend directory to path for routes/errors imports
+sys.path.insert(0, str(Path(__file__).parent))
 
 from flask import Flask
 from flask_cors import CORS
