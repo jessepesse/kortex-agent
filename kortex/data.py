@@ -107,7 +107,7 @@ def validate_filename(filename: str) -> Path:
     
     Prevents Path Traversal attacks by enforcing basename.
     """
-    # Draconian whitelist: Only allow alphanumeric, dots, underscores, dashes
+    # Draconian whitelist: Only allow alphanumeric, dots, underscores, dashes (no slashes!)
     # CodeQL: Input is strictly validated against a regex allowlist. 
     # Path traversal characters (/, \, ..) are explicitly rejected.
     if not re.match(r'^[a-zA-Z0-9_.-]+$', filename):
@@ -124,6 +124,27 @@ def validate_filename(filename: str) -> Path:
         raise ValueError("Access denied: path points outside safe directory.")
         
     return filepath
+
+def validate_filepath_in_dir(filename: str, root_dir: Path) -> Path:
+    """Validate filename and ensure it resolves inside given root_dir.
+    
+    Used for backup restore: root_dir may be DATA_DIR or DATA_DIR/conversations.
+    Ensures no zip slip or path traversal is possible.
+    """
+    # Only allow filenames, not paths
+    if not re.match(r'^[a-zA-Z0-9_.-]+$', filename):
+        # Try basename, then check again
+        safe_name = os.path.basename(filename)
+        if not re.match(r'^[a-zA-Z0-9_.-]+$', safe_name):
+            raise ValueError(f"Invalid filename: {filename} (not safe for backup restore)")
+        filename = safe_name
+    # Compose and resolve
+    file_path = (root_dir / filename).resolve()
+    root_dir_resolved = root_dir.resolve()
+    # Verify file_path is inside root_dir
+    if not str(file_path).startswith(str(root_dir_resolved)):
+        raise ValueError(f"Denied: File {file_path} escapes restore directory")
+    return file_path
 
 
 def load_json_file(filename: str) -> JsonDict:

@@ -196,9 +196,9 @@ def restore_backup(zip_bytes: bytes) -> Dict[str, Any]:
                     target_name = filename.replace("data/", "")
                     
                     try:
-                        # Validate path to prevent Zip Slip
-                        target_path = validate_filename(target_name)
-                        
+                        # Validate path to prevent Zip Slip - ensure only filename, in DATA_DIR
+                        from .data import validate_filepath_in_dir
+                        target_path = validate_filepath_in_dir(target_name, DATA_DIR)
                         content = zf.read(filename)
                         # Validate JSON before writing
                         json.loads(content)
@@ -215,10 +215,10 @@ def restore_backup(zip_bytes: bytes) -> Dict[str, Any]:
                     target_name = filename.replace("conversations/", "")
                     
                     try:
-                        # Validate path to prevent Zip Slip
-                        # validate_filename validates against DATA_DIR
-                        target_path = validate_filename(f"conversations/{target_name}")
-                        
+                        # Validate path to prevent Zip Slip - allow only filename, restored to DATA_DIR/conversations
+                        from .data import validate_filepath_in_dir
+                        conv_dir = DATA_DIR / "conversations"
+                        target_path = validate_filepath_in_dir(target_name, conv_dir)
                         content = zf.read(filename)
                         json.loads(content)
                         
