@@ -50,6 +50,7 @@ def create_backup(conversation_ids: Optional[List[str]] = None) -> bytes:
                 # Include only selected conversations
                 for conv_id in conversation_ids:
                     try:
+                        # CodeQL: ID is validated before use in path construction
                         validate_chat_id(conv_id)
                     except ValueError:
                         continue

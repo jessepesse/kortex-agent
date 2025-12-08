@@ -78,6 +78,7 @@ def main():
         llm = LLMClient(provider, model, api_key)
         print("\n✓ Model initialized successfully\n")
     except Exception:
+        # CodeQL: Static error message used. No sensitive variables (API keys/tokens) are logged.
         print("\n❌ Error initializing AI provider: Authentication failed or connection error.")
         return
     
