@@ -9,13 +9,11 @@ from pathlib import Path
 
 # Add parent directory to path for kortex imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
-# Add backend directory to path for routes/errors imports
-sys.path.insert(0, str(Path(__file__).parent))
 
 from flask import Flask
 from flask_cors import CORS
-from routes import register_all_routes
-from errors import register_error_handlers
+from backend.routes import register_all_routes
+from backend.errors import register_error_handlers
 
 
 def create_app():

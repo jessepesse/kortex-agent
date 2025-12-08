@@ -13,10 +13,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY kortex/ ./kortex/
 
 # Copy backend code
-COPY backend/ ./
+# Copy backend code
+COPY backend/ ./backend/
 
 # Expose Flask port
 EXPOSE 5001
 
+# Set PYTHONPATH to include /app so we can import from backend and kortex
+ENV PYTHONPATH=/app
+
 # Run the application
-CMD ["python", "app.py"]
+CMD ["python", "backend/app.py"]
