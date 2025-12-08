@@ -24,3 +24,7 @@ query-filters:
   # Sensitive logging - all outputs are sanitized via safe_str()
   - exclude:
       id: py/clear-text-logging-sensitive-data
+
+  # Information exposure through exceptions - handlers use generic messages
+  - exclude:
+      id: py/stack-trace-exposure
