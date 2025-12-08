@@ -12,9 +12,38 @@ fi
 
 echo "✓ Python 3 found"
 
-# Install dependencies
-echo "📦 Installing dependencies..."
-pip3 install -r requirements.txt
+# Check if npm is installed (needed for React frontend)
+if ! command -v npm &> /dev/null; then
+    echo "❌ npm is not installed. Please install Node.js and npm first."
+    echo ""
+    echo "On Arch: sudo pacman -S nodejs npm"
+    echo "On Debian/Ubuntu: sudo apt install nodejs npm"
+    echo "On Fedora: sudo dnf install nodejs npm"
+    exit 1
+fi
+
+echo "✓ npm found"
+
+# Create virtual environment if it doesn't exist
+if [ ! -d "venv" ]; then
+    echo "📦 Creating Python virtual environment..."
+    python3 -m venv venv
+    if [ $? -ne 0 ]; then
+        echo "❌ Failed to create virtual environment"
+        exit 1
+    fi
+    echo "✓ Virtual environment created"
+else
+    echo "✓ Virtual environment already exists"
+fi
+
+# Install Python dependencies in virtual environment
+echo "📦 Installing Python dependencies..."
+./venv/bin/pip install -r requirements.txt
+
+# Install Node.js dependencies
+echo "📦 Installing Node.js dependencies..."
+cd frontend && npm install && cd ..
 
 echo ""
 echo "✓ Setup complete!"

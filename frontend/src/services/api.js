@@ -73,14 +73,13 @@ export const pinConversation = async (chatId) => {
 };
 
 /**
- * Get all JSON data files
+ * Run Elite Council Mode (3 top models voting)
  */
-export const runCouncil = async (message, history) => {
+export const runCouncil = async (message, history, chatId = null) => {
   try {
-    const response = await api.post('/api/council', {
-      message,
-      history
-    });
+    const payload = { message, history };
+    if (chatId) payload.chat_id = chatId;
+    const response = await api.post('/api/council', payload);
     return response.data;
   } catch (error) {
     console.error('Error running council:', error);
@@ -91,12 +90,11 @@ export const runCouncil = async (message, history) => {
 /**
  * Run Hive Mode (6 DeepSeek personas)
  */
-export const runHive = async (message, history) => {
+export const runHive = async (message, history, chatId = null) => {
   try {
-    const response = await api.post('/api/hive', {
-      message,
-      history
-    });
+    const payload = { message, history };
+    if (chatId) payload.chat_id = chatId;
+    const response = await api.post('/api/hive', payload);
     return response.data;
   } catch (error) {
     console.error('Error running hive:', error);
@@ -107,12 +105,11 @@ export const runHive = async (message, history) => {
 /**
  * Run MEGA Mode (Elite + Hive → Ultimate Chairman)
  */
-export const runMega = async (message, history) => {
+export const runMega = async (message, history, chatId = null) => {
   try {
-    const response = await api.post('/api/mega', {
-      message,
-      history
-    });
+    const payload = { message, history };
+    if (chatId) payload.chat_id = chatId;
+    const response = await api.post('/api/mega', payload);
     return response.data;
   } catch (error) {
     console.error('Error running mega:', error);

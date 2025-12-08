@@ -2,20 +2,24 @@ import google.generativeai as genai
 import os
 import json
 import asyncio
-from kortex.tools import TOOL_FUNCTIONS
+import logging
+
+from kortex.tools import TOOL_FUNCTIONS, GEMINI_TOOL_DEFINITIONS
 from google.generativeai.types import generation_types
+
+logger = logging.getLogger(__name__)
 
 class ScribeService:
     def __init__(self):
         self.api_key = os.getenv("GOOGLE_API_KEY")
         if not self.api_key:
-            print("⚠️ ScribeService: No Google API Key found. Scribe disabled.")
+            logger.warning("ScribeService: No Google API Key found. Scribe disabled.")
             return
         
         genai.configure(api_key=self.api_key)
         
-        # Define tools for the Scribe
-        self.tools = list(TOOL_FUNCTIONS.values())
+        # Define tools for the Scribe using Gemini-native format
+        self.tools = GEMINI_TOOL_DEFINITIONS
         
         # Initialize Gemini 2.5 Flash Lite model
         self.model = genai.GenerativeModel(
@@ -61,7 +65,7 @@ Examples:
         if not self.api_key:
             return []
 
-        print("✍️ Scribe: Analyzing with full context...")
+        logger.info("Scribe: Analyzing with full context...")
         
         try:
             system_prompt = self._build_system_prompt(context)
@@ -94,7 +98,7 @@ Examples:
                 )
             except generation_types.StopCandidateException as e:
                 # Handle malformed function call gracefully
-                print(f"❌ Scribe malformed function call: {e}")
+                logger.error(f"Scribe malformed function call: {e}")
                 return []
             
             # Check if there were function calls
@@ -122,19 +126,19 @@ Examples:
                             try:
                                 result = TOOL_FUNCTIONS[fc.name](**args)
                                 updates.append(f"✓ {fc.name}: {result}")
-                                print(f"✍️ Scribe executed: {fc.name}")
+                                logger.info(f"Scribe executed: {fc.name}")
                             except Exception as e:
-                                print(f"❌ Scribe failed to execute {fc.name}: {e}")
+                                logger.error(f"Scribe failed to execute {fc.name}: {e}")
             
             if updates:
-                print(f"✅ Scribe completed {len(updates)} updates")
+                logger.info(f"Scribe completed {len(updates)} updates")
             else:
-                print("✍️ Scribe: No updates needed.")
+                logger.debug("Scribe: No updates needed.")
                 
             return updates
 
         except Exception as e:
-            print(f"❌ Scribe Error: {e}")
+            logger.error(f"Scribe Error: {e}")
             import traceback
             traceback.print_exc()
             return []

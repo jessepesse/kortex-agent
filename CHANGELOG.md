@@ -5,6 +5,49 @@ All notable changes to Kortex Agent will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0-alpha2] - 2025-12-08
+
+### Added
+
+#### Testing & Quality
+- **Comprehensive Test Suite** — 39 tests (unit + integration)
+- **pytest Configuration** — `pytest.ini` with proper settings
+- **Shared Test Fixtures** — `conftest.py` with isolated temp directories
+- **Type Hints** — Full type annotations in `kortex/` modules
+
+#### Infrastructure
+- **Docker Health Check** — Backend health endpoint with container health monitoring
+- **Dependency Pinning** — All Python dependencies pinned to exact versions
+
+#### Logging
+- **Centralized Logging** — `kortex/logging.py` with colored console output
+- **Emoji Prefixes** — Visual log level indicators (✨ INFO, ⚠️ WARNING, ❌ ERROR)
+
+### Changed
+
+#### Backend Architecture
+- **Modular Routes** — Refactored `routes.py` (800+ lines) into 7 focused modules:
+  - `routes/health.py`, `chat.py`, `history.py`, `data.py`, `config.py`, `backup.py`, `council.py`
+- **Centralized Errors** — `errors.py` with custom exceptions and decorators
+- **Standardized Responses** — `success_response()` and `error_response()` helpers
+
+#### Frontend Architecture  
+- **SettingsModal Refactored** — Split into 5 focused components (462 → ~100 lines each)
+- **Chat Tracking** — Council modes now properly return and track `chat_id`
+
+#### AI Behavior
+- **Improved System Prompt** — AI now actually answers questions instead of deflecting
+- **All-Domain Helpfulness** — Covers tech, health, projects, emotions, finances
+- **Anti-Pattern Rules** — Explicit rules against "kerro lisää", "miten voin auttaa?"
+
+### Fixed
+
+- **Council Chat Duplicates** — Fixed missing `chat_id` in council route responses
+- **Conversation Tracking** — Frontend now properly tracks council conversation IDs
+- **Deprecated datetime** — Fixed `datetime.utcnow()` deprecation warning
+
+---
+
 ## [1.0.0-alpha] - 2025-12-05
 
 ### Added

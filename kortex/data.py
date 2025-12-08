@@ -1,16 +1,29 @@
 """Data operations for Kortex Agent"""
 
+from __future__ import annotations
+
 import json
+import time
+import uuid
 from pathlib import Path
+from typing import Any, Optional
+
 from .config import DATA_DIR
+from .logging import get_logger
+
+logger = get_logger(__name__)
+
+
+# Type aliases
+JsonDict = dict[str, Any]
+ConversationMessage = dict[str, str]
 
 
 # =============================================================================
 # DEFAULT DATA STRUCTURES
 # =============================================================================
-# These are used when creating new data files for first-time users
 
-DEFAULT_DATA = {
+DEFAULT_DATA: dict[str, JsonDict] = {
     "profile": {
         "name": "",
         "location": "",
@@ -43,17 +56,12 @@ DEFAULT_DATA = {
     },
     "finance": {
         "accounts": [],
-        "budgets": {
-            "monthly": {}
-        },
+        "budgets": {"monthly": {}},
         "transactions": [],
         "notes": []
     },
     "routines": {
-        "daily": {
-            "morning": [],
-            "evening": []
-        },
+        "daily": {"morning": [], "evening": []},
         "weekly": [],
         "habits": []
     },
@@ -62,9 +70,7 @@ DEFAULT_DATA = {
         "principles": [],
         "priorities": []
     },
-    "active_projects": {
-        "projects": []
-    },
+    "active_projects": {"projects": []},
     "tech_inventory": {
         "devices": [],
         "subscriptions": [],
@@ -86,7 +92,7 @@ DEFAULT_DATA = {
 # DATA FILE OPERATIONS
 # =============================================================================
 
-def get_all_json_files():
+def get_all_json_files() -> list[str]:
     """Dynamically scan the data directory for all JSON files."""
     DATA_DIR.mkdir(exist_ok=True)
     json_files = [f.name for f in DATA_DIR.glob("*.json")]
@@ -94,7 +100,7 @@ def get_all_json_files():
     return json_files
 
 
-def load_json_file(filename):
+def load_json_file(filename: str) -> JsonDict:
     """Load a JSON file from the data directory.
     
     If the file doesn't exist, creates it with default data.
@@ -102,7 +108,6 @@ def load_json_file(filename):
     filepath = DATA_DIR / filename
     DATA_DIR.mkdir(exist_ok=True)
     
-    # Get default data for this file type
     key = filename.replace('.json', '')
     default_data = DEFAULT_DATA.get(key, {})
     
@@ -110,16 +115,15 @@ def load_json_file(filename):
         with open(filepath, 'r') as f:
             return json.load(f)
     except FileNotFoundError:
-        # Create file with default data
         with open(filepath, 'w') as f:
             json.dump(default_data, f, indent=2)
         return default_data
     except json.JSONDecodeError:
-        print(f"Warning: Could not parse {filename}. Using default data.")
+        logger.warning(f"Could not parse {filename}. Using default data.")
         return default_data
 
 
-def save_json_file(filename, data):
+def save_json_file(filename: str, data: JsonDict) -> str:
     """Save data to a JSON file in the data directory."""
     filepath = DATA_DIR / filename
     DATA_DIR.mkdir(exist_ok=True)
@@ -128,30 +132,21 @@ def save_json_file(filename, data):
     return f"✓ Updated {filename}"
 
 
-def load_all_context():
-    """Dynamically load all JSON files from the data directory.
-    
-    If no files exist, initializes with default data files.
-    """
-    # Initialize default files if data directory is empty
+def load_all_context() -> dict[str, JsonDict]:
+    """Dynamically load all JSON files from the data directory."""
     if not get_all_json_files():
         initialize_data()
     
-    context = {}
-    json_files = get_all_json_files()
-    
-    for filename in json_files:
+    context: dict[str, JsonDict] = {}
+    for filename in get_all_json_files():
         key = filename.replace('.json', '')
         context[key] = load_json_file(filename)
     
     return context
 
 
-def initialize_data():
-    """Create all default data files if they don't exist.
-    
-    Called automatically on first run.
-    """
+def initialize_data() -> None:
+    """Create all default data files if they don't exist."""
     DATA_DIR.mkdir(exist_ok=True)
     
     for key, default in DEFAULT_DATA.items():
@@ -159,44 +154,47 @@ def initialize_data():
         if not filepath.exists():
             with open(filepath, 'w') as f:
                 json.dump(default, f, indent=2)
-            print(f"Created {key}.json with default data")
+            logger.info(f"Created {key}.json with default data")
 
 
-# Conversation Management
+# =============================================================================
+# CONVERSATION MANAGEMENT
+# =============================================================================
 
-def get_conversations_dir():
+def get_conversations_dir() -> Path:
     """Get the directory for storing conversations."""
     conv_dir = DATA_DIR / "conversations"
     conv_dir.mkdir(parents=True, exist_ok=True)
     return conv_dir
 
 
-def generate_chat_id():
+def generate_chat_id() -> str:
     """Generate a unique chat ID based on timestamp and UUID."""
-    import time
-    import uuid
     timestamp = int(time.time())
     unique_id = str(uuid.uuid4())[:8]
     return f"{timestamp}_{unique_id}"
 
 
-def save_conversation(chat_id, messages, title=None):
+def save_conversation(
+    chat_id: str, 
+    messages: list[ConversationMessage], 
+    title: Optional[str] = None
+) -> str:
     """Save a conversation to a JSON file."""
     conv_dir = get_conversations_dir()
     filepath = conv_dir / f"{chat_id}.json"
     
-    # Check if conversation exists to preserve pinned status
+    # Preserve pinned status if conversation exists
     existing_pinned = False
     if filepath.exists():
         try:
             with open(filepath, 'r') as f:
                 existing_data = json.load(f)
                 existing_pinned = existing_data.get('pinned', False)
-        except:
+        except Exception:
             pass
     
-    import time
-    data = {
+    data: JsonDict = {
         "id": chat_id,
         "title": title or "New Chat",
         "timestamp": int(chat_id.split('_')[0]),
@@ -210,7 +208,7 @@ def save_conversation(chat_id, messages, title=None):
     return chat_id
 
 
-def load_conversation(chat_id):
+def load_conversation(chat_id: str) -> Optional[JsonDict]:
     """Load a conversation by ID."""
     conv_dir = get_conversations_dir()
     filepath = conv_dir / f"{chat_id}.json"
@@ -222,32 +220,34 @@ def load_conversation(chat_id):
         return None
 
 
-def list_conversations():
+def list_conversations() -> list[JsonDict]:
     """List all saved conversations, sorted by newest first."""
     conv_dir = get_conversations_dir()
-    conversations = []
+    conversations: list[JsonDict] = []
     
     for filepath in conv_dir.glob("*.json"):
         try:
             with open(filepath, 'r') as f:
                 data = json.load(f)
+                messages = data.get("messages", [])
+                preview = messages[-1].get("content", "")[:50] if messages else ""
+                
                 conversations.append({
                     "id": data.get("id"),
                     "title": data.get("title", "Untitled"),
                     "timestamp": data.get("timestamp", 0),
                     "lastModified": data.get("lastModified", data.get("timestamp", 0)),
                     "pinned": data.get("pinned", False),
-                    "preview": data.get("messages", [])[-1].get("content", "")[:50] if data.get("messages") else ""
+                    "preview": preview
                 })
         except Exception:
             continue
             
-    # Sort by timestamp descending (newest first)
     conversations.sort(key=lambda x: x["timestamp"], reverse=True)
     return conversations
 
 
-def delete_conversation(chat_id):
+def delete_conversation(chat_id: str) -> bool:
     """Delete a conversation by ID."""
     conv_dir = get_conversations_dir()
     filepath = conv_dir / f"{chat_id}.json"
@@ -258,12 +258,12 @@ def delete_conversation(chat_id):
             return True
         return False
     except Exception as e:
-        print(f"Error deleting conversation {chat_id}: {e}")
+        logger.error(f"Error deleting conversation {chat_id}: {e}")
         return False
 
 
-def toggle_pin(chat_id):
-    """Toggle pinned status of a conversation"""
+def toggle_pin(chat_id: str) -> Optional[bool]:
+    """Toggle pinned status of a conversation."""
     conv_dir = get_conversations_dir()
     filepath = conv_dir / f"{chat_id}.json"
     
@@ -271,11 +271,7 @@ def toggle_pin(chat_id):
         with open(filepath, 'r') as f:
             data = json.load(f)
         
-        # Toggle pinned status
         data['pinned'] = not data.get('pinned', False)
-        
-        # Update lastModified
-        import time
         data['lastModified'] = int(time.time())
         
         with open(filepath, 'w') as f:
@@ -285,5 +281,5 @@ def toggle_pin(chat_id):
     except FileNotFoundError:
         return None
     except Exception as e:
-        print(f"Error deleting conversation {chat_id}: {e}")
-        return False
+        logger.error(f"Error toggling pin for {chat_id}: {e}")
+        return None

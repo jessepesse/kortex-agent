@@ -1,6 +1,6 @@
 # 🧠 KORTEX >_ Personal AI Assistant
 
-> **Version 1.0.0-alpha** | Powered by Council LLM Architecture
+> **Version 1.0.0-alpha2** | Powered by Council LLM Architecture
 
 **Kortex Agent** is a comprehensive, context-aware AI assistant designed to act as your personal operating system. It integrates deeply with your life's data—values, health, projects, routines—to provide pragmatic, personalized advice.
 
@@ -89,7 +89,8 @@ kortex-agent/
 │   └── ...                  # Extensible: add any .json file!
 ├── data.example/            # Example data structure (for reference)
 ├── config.json              # API keys and model preferences
-└── start.sh                 # Quick start script
+├── start.sh                 # Quick start script (Linux/macOS)
+└── start.bat                # Quick start script (Windows)
 ```
 
 ## 🚀 Getting Started
@@ -130,8 +131,14 @@ You can also configure API keys through the Settings modal in the UI.
 
 Use the helper script to start both backend and frontend:
 
+**Linux/macOS:**
 ```bash
 ./start.sh
+```
+
+**Windows:**
+```cmd
+start.bat
 ```
 
 The app will open at `http://localhost:3000`.

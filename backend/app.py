@@ -11,16 +11,19 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from flask import Flask
 from flask_cors import CORS
-from routes import register_routes
+from routes import register_all_routes
+from errors import register_error_handlers
 
 app = Flask(__name__)
 
 # Configure CORS properly - allow all origins in development
-# Configure CORS properly - allow all origins in development
 CORS(app)
 
-# Register all routes
-register_routes(app)
+# Register all routes from modular structure
+register_all_routes(app)
+
+# Register global error handlers for consistent error responses
+register_error_handlers(app)
 
 @app.route('/health')
 def health():

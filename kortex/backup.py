@@ -1,11 +1,13 @@
 """Backup and restore functionality for Kortex Agent"""
 
+from __future__ import annotations
+
 import io
 import json
 import zipfile
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import List, Optional, Dict, Any
+from typing import Any, Optional
 
 from .config import DATA_DIR, CONFIG_FILE
 from .data import get_conversations_dir, list_conversations
@@ -62,7 +64,7 @@ def create_backup(conversation_ids: Optional[List[str]] = None) -> bytes:
         # 4. Create and add manifest
         manifest = {
             "version": "1.0",
-            "created_at": datetime.utcnow().isoformat() + "Z",
+            "created_at": datetime.now(timezone.utc).isoformat(),
             "kortex_version": "1.0.0-alpha",
             "files": {
                 "data": sorted(data_files),

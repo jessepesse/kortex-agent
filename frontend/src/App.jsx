@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Chat from './components/Chat';
 import Sidebar from './components/Sidebar';
 import FunctionCallModal from './components/FunctionCallModal';
-import SettingsModal from './components/SettingsModal';
+import { SettingsModal } from './components/settings';
 import * as api from './services/api';
 import './App.css';
 
@@ -76,7 +76,7 @@ function App() {
       if (text.startsWith('/council') || text.startsWith('/elite')) {
         const query = text.replace(/^\/(council|elite)/, '').trim();
         setCouncilLoading('elite');
-        response = await api.runCouncil(query, messages);
+        response = await api.runCouncil(query, messages, currentChatId);
 
         // Elite Council response handling
         const councilMessage = {
@@ -90,10 +90,16 @@ function App() {
         setMessages(prev => [...prev, councilMessage]);
         setCouncilLoading(null);
 
+        // Track the conversation and update sidebar
+        if (response.chat_id) {
+          setCurrentChatId(response.chat_id);
+        }
+        window.dispatchEvent(new CustomEvent('chatHistoryChanged'));
+
       } else if (text.startsWith('/hive')) {
         const query = text.replace('/hive', '').trim();
         setCouncilLoading('hive');
-        response = await api.runHive(query, messages);
+        response = await api.runHive(query, messages, currentChatId);
 
         // Hive Council response handling
         const hiveMessage = {
@@ -107,10 +113,16 @@ function App() {
         setMessages(prev => [...prev, hiveMessage]);
         setCouncilLoading(null);
 
+        // Track the conversation and update sidebar
+        if (response.chat_id) {
+          setCurrentChatId(response.chat_id);
+        }
+        window.dispatchEvent(new CustomEvent('chatHistoryChanged'));
+
       } else if (text.startsWith('/mega')) {
         const query = text.replace('/mega', '').trim();
         setCouncilLoading('mega');
-        response = await api.runMega(query, messages);
+        response = await api.runMega(query, messages, currentChatId);
 
         // Mega Council response handling
         const megaMessage = {
@@ -123,6 +135,12 @@ function App() {
         };
         setMessages(prev => [...prev, megaMessage]);
         setCouncilLoading(null);
+
+        // Track the conversation and update sidebar
+        if (response.chat_id) {
+          setCurrentChatId(response.chat_id);
+        }
+        window.dispatchEvent(new CustomEvent('chatHistoryChanged'));
 
       } else {
         // Standard chat (with optional files)

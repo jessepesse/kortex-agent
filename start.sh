@@ -25,7 +25,7 @@ echo "🔧 Starting Flask backend (port 5001)..."
 cd backend
 export FLASK_APP=app.py
 export PYTHONPATH="$PYTHONPATH:$(dirname $(pwd))"
-python3 -m flask run --host=0.0.0.0 --port=5001 &
+../venv/bin/python -m flask run --host=0.0.0.0 --port=5001 &
 BACKEND_PID=$!
 cd ..
 

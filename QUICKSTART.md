@@ -4,11 +4,17 @@
 
 ### Option 1: One Command (Recommended)
 
+**Linux/macOS:**
 ```bash
 ./start.sh
 ```
 
-This starts both backend and frontend. Press `Ctrl+C` to stop both.
+**Windows:**
+```cmd
+start.bat
+```
+
+This starts both backend and frontend. Press `Ctrl+C` to stop.
 
 ### Option 2: Docker Compose
 
@@ -74,9 +80,8 @@ OPENROUTER_API_KEY=your_openrouter_key  # Required for Hive Mode
 3. **Configure API keys** (via UI Settings or `.env`)
 
 4. **Start the app:**
-   ```bash
-   ./start.sh
-   ```
+   - Linux/macOS: `./start.sh`
+   - Windows: `start.bat`
 
 5. **Open** http://localhost:3000
 
@@ -86,7 +91,7 @@ OPENROUTER_API_KEY=your_openrouter_key  # Required for Hive Mode
 
 | Method | Command |
 |--------|---------|
-| start.sh | `Ctrl+C` |
+| start.sh / start.bat | `Ctrl+C` |
 | Docker | `docker-compose down` |
 | Manual | `Ctrl+C` in each terminal |
 
