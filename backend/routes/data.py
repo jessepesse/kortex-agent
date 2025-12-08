@@ -5,7 +5,7 @@ Data routes - JSON data file management
 from flask import request, jsonify
 
 from kortex import data
-from errors import handle_exceptions, success_response
+from backend.errors import handle_exceptions, success_response
 
 
 def register_data_routes(app):

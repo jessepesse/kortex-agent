@@ -77,12 +77,8 @@ def main():
     try:
         llm = LLMClient(provider, model, api_key)
         print(f"\n✓ Using {provider}: {model}\n")
-    except Exception as e:
-        # Sanitize sensitive info from error
-        error_msg = str(e)
-        if "key" in error_msg.lower():
-            error_msg = "Authentication failed (check API key)"
-        print(f"\n❌ Error initializing {provider}: {error_msg}")
+    except Exception:
+        print(f"\n❌ Error initializing {provider}: Authentication failed or connection error.")
         return
     
     print("="*60)
@@ -115,12 +111,8 @@ def main():
                 llm = LLMClient(provider, model, api_key)
                 print(f"✓ Switched to {provider}: {model}")
                 chat_history = []
-            except Exception as e:
-                # Sanitize sensitive info
-                error_msg = str(e)
-                if "key" in error_msg.lower():
-                    error_msg = "Authentication failed"
-                print(f"❌ Error: {error_msg}")
+            except Exception:
+                print("❌ Error: Could not switch model.")
             continue
         
         # Load context and build prompt

@@ -5,7 +5,7 @@ Backup routes - Backup and restore functionality
 from flask import request, Response
 
 from kortex import data, backup
-from errors import handle_exceptions, ValidationError, success_response
+from backend.errors import handle_exceptions, ValidationError, success_response
 
 
 def register_backup_routes(app):

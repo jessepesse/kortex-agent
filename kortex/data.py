@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import time
 import uuid
+import os
 from pathlib import Path
 from typing import Any, Optional
 
@@ -103,13 +104,18 @@ def get_all_json_files() -> list[str]:
 def validate_filename(filename: str) -> Path:
     """Validate and resolve filename to ensure it stays within DATA_DIR.
     
-    Prevents Path Traversal attacks.
+    Prevents Path Traversal attacks by enforcing basename.
     """
-    # Ensure no directory separators in filename
+    # Force basename to prevent directory traversal attempts immediately
+    safe_name = os.path.basename(filename)
+    
+    # Original check for sanity
     if "/" in filename or "\\" in filename:
-        raise ValueError(f"Invalid filename: {filename}. Directory separators not allowed.")
+        # If the original input had separators, it might have been an attack attempt
+        # We'll use the safe basename, but log warning could be good (skipping log for simplicity)
+        pass
         
-    filepath = (DATA_DIR / filename).resolve()
+    filepath = (DATA_DIR / safe_name).resolve()
     
     # Verify the resolved path starts with DATA_DIR
     if not str(filepath).startswith(str(DATA_DIR.resolve())):

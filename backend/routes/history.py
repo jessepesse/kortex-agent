@@ -5,7 +5,7 @@ History routes - Conversation management
 from flask import jsonify
 
 from kortex import data
-from errors import handle_exceptions, NotFoundError, success_response
+from backend.errors import handle_exceptions, NotFoundError, success_response
 
 
 def register_history_routes(app):

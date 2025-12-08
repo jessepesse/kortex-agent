@@ -5,7 +5,7 @@ Config routes - API keys, models, settings
 from flask import request, jsonify
 
 from kortex import config
-from errors import handle_exceptions, ValidationError, success_response
+from backend.errors import handle_exceptions, ValidationError, success_response
 
 
 def register_config_routes(app):
