@@ -148,10 +148,10 @@ def _get_openai_response(message, history, model, api_key, system_prompt, files=
                     }
                 })
             elif file['type'] == 'application/pdf':
-                # Extract text from PDF using PyPDF2
+                # Extract text from PDF using pypdf
                 import base64
                 import io
-                from PyPDF2 import PdfReader
+                from pypdf import PdfReader
                 
                 pdf_bytes = base64.b64decode(file['data'])
                 pdf_file = io.BytesIO(pdf_bytes)
@@ -347,10 +347,10 @@ def _get_claude_response(message, history, model, api_key, system_prompt, files=
                     }
                 })
             elif file['type'] == 'application/pdf':
-                # Extract text from PDF using PyPDF2
+                # Extract text from PDF using pypdf
                 import base64
                 import io
-                from PyPDF2 import PdfReader
+                from pypdf import PdfReader
                 
                 pdf_bytes = base64.b64decode(file['data'])
                 pdf_file = io.BytesIO(pdf_bytes)
