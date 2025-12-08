@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any, Optional, List, Dict
 
 from .config import DATA_DIR, CONFIG_FILE
-from .data import get_conversations_dir, list_conversations, validate_filename, validate_chat_id
+from .data import get_conversations_dir, list_conversations, validate_filename, validate_chat_id, validate_conversation_filename
 
 
 def create_backup(conversation_ids: Optional[List[str]] = None) -> bytes:
@@ -215,9 +215,8 @@ def restore_backup(zip_bytes: bytes) -> Dict[str, Any]:
                     target_name = filename.replace("conversations/", "")
                     
                     try:
-                        # Validate path to prevent Zip Slip
-                        # validate_filename validates against DATA_DIR
-                        target_path = validate_filename(f"conversations/{target_name}")
+                        # Validate path to prevent Zip Slip and ensure under conversations dir
+                        target_path = validate_conversation_filename(target_name)
                         
                         content = zf.read(filename)
                         json.loads(content)

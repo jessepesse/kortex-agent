@@ -16,6 +16,32 @@ from .logging import get_logger
 logger = get_logger(__name__)
 
 
+def get_conversations_dir() -> Path:
+    """Return the conversations directory path (could be in DATA_DIR or elsewhere)."""
+    return DATA_DIR / "conversations"
+
+
+def validate_conversation_filename(filename: str) -> Path:
+    """
+    Validate and resolve conversation filename to ensure it stays within the conversations dir.
+    
+    Prevents path traversal attacks by enforcing basename and location inside the conversations dir.
+    """
+    conversations_dir = get_conversations_dir()
+    # Only allow alphanumeric, dots, underscores, dashes
+    import re
+    import os
+    # Remove any directory components - never allow slashes or backslashes
+    safe_name = os.path.basename(filename)
+    if not re.match(r'^[a-zA-Z0-9_.-]+$', safe_name):
+        raise ValueError(f"Invalid filename: {filename}. Only alphanumeric, dot, underscore, dash allowed.")
+    filepath = (conversations_dir / safe_name).resolve()
+    # Verify the resolved path starts with the conversations dir
+    if not str(filepath).startswith(str(conversations_dir.resolve())):
+        raise ValueError("Access denied: path points outside safe conversations directory.")
+    return filepath
+
+
 # Type aliases
 JsonDict = dict[str, Any]
 ConversationMessage = dict[str, str]
