@@ -7,84 +7,10 @@ import json
 import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Optional, List, Dict
 
 from .config import DATA_DIR, CONFIG_FILE
 from .data import get_conversations_dir, list_conversations, validate_filename
-
-
-# ... (skipping unchanged code)
-
-
-def restore_backup(zip_bytes: bytes) -> Dict[str, Any]:
-    """
-    Restore from a backup. OVERWRITES ALL DATA!
-    
-    Returns:
-        {
-            "success": bool,
-            "restored_files": list[str],
-            "errors": list[str]
-        }
-    """
-    result = {
-        "success": True,
-        "restored_files": [],
-        "errors": []
-    }
-    
-    # 1. Validate first
-    validation = validate_backup(zip_bytes)
-    if not validation["valid"]:
-        result["success"] = False
-        result["errors"] = validation["errors"]
-        return result
-    
-    try:
-        buffer = io.BytesIO(zip_bytes)
-        with zipfile.ZipFile(buffer, 'r') as zf:
-            
-            # 2. Restore data files
-            for filename in zf.namelist():
-                if filename.startswith("data/") and filename.endswith(".json"):
-                    # Extract to DATA_DIR
-                    target_name = filename.replace("data/", "")
-                    
-                    try:
-                        # Validate path to prevent Zip Slip
-                        target_path = validate_filename(target_name)
-                        
-                        content = zf.read(filename)
-                        # Validate JSON before writing
-                        json.loads(content)
-                        
-                        DATA_DIR.mkdir(parents=True, exist_ok=True)
-                        with open(target_path, 'wb') as f:
-                            f.write(content)
-                        result["restored_files"].append(f"data/{target_name}")
-                    except Exception as e:
-                        result["errors"].append(f"Virhe palautettaessa {filename}: {str(e)}")
-                
-                elif filename.startswith("conversations/") and filename.endswith(".json"):
-                    # Extract to conversations dir
-                    target_name = filename.replace("conversations/", "")
-                    
-                    try:
-                        # Validate path to prevent Zip Slip (using validate_filename relative to conversations dir is tricky with current impl)
-                        # But validate_filename validates against DATA_DIR. conv_dir is inside DATA_DIR.
-                        # So validate_filename(f"conversations/{target_name}") should work.
-                        
-                        target_path = validate_filename(f"conversations/{target_name}")
-                        
-                        content = zf.read(filename)
-                        json.loads(content)
-                        
-                        target_path.parent.mkdir(parents=True, exist_ok=True)
-                        with open(target_path, 'wb') as f:
-                            f.write(content)
-                        result["restored_files"].append(f"conversations/{target_name}")
-                    except Exception as e:
-                        result["errors"].append(f"Virhe palautettaessa {filename}: {str(e)}")
 
 
 def create_backup(conversation_ids: Optional[List[str]] = None) -> bytes:
@@ -262,9 +188,11 @@ def restore_backup(zip_bytes: bytes) -> Dict[str, Any]:
                 if filename.startswith("data/") and filename.endswith(".json"):
                     # Extract to DATA_DIR
                     target_name = filename.replace("data/", "")
-                    target_path = DATA_DIR / target_name
                     
                     try:
+                        # Validate path to prevent Zip Slip
+                        target_path = validate_filename(target_name)
+                        
                         content = zf.read(filename)
                         # Validate JSON before writing
                         json.loads(content)
@@ -278,15 +206,17 @@ def restore_backup(zip_bytes: bytes) -> Dict[str, Any]:
                 
                 elif filename.startswith("conversations/") and filename.endswith(".json"):
                     # Extract to conversations dir
-                    conv_dir = get_conversations_dir()
                     target_name = filename.replace("conversations/", "")
-                    target_path = conv_dir / target_name
                     
                     try:
+                        # Validate path to prevent Zip Slip
+                        # validate_filename validates against DATA_DIR
+                        target_path = validate_filename(f"conversations/{target_name}")
+                        
                         content = zf.read(filename)
                         json.loads(content)
                         
-                        conv_dir.mkdir(parents=True, exist_ok=True)
+                        target_path.parent.mkdir(parents=True, exist_ok=True)
                         with open(target_path, 'wb') as f:
                             f.write(content)
                         result["restored_files"].append(f"conversations/{target_name}")
