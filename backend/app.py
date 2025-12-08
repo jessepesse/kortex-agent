@@ -3,6 +3,7 @@
 Flask Backend Server for Kortex Agent
 """
 
+import os
 import sys
 from pathlib import Path
 
@@ -66,4 +67,9 @@ if __name__ == '__main__':
     # Start background services
     start_background_services()
     
-    app.run(host='0.0.0.0', port=5001, debug=True)
+    # Security: Debug mode disabled by default, controlled via env var
+    debug_mode = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
+    if debug_mode:
+        print("⚠️  WARNING: Debug mode is ENABLED")
+    
+    app.run(host='0.0.0.0', port=5001, debug=debug_mode)
