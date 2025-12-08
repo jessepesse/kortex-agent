@@ -76,7 +76,7 @@ jobs:
             type=sha,prefix=
       
       - name: Build and push Backend
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: backend/Dockerfile
@@ -98,7 +98,7 @@ jobs:
             type=sha,prefix=
       
       - name: Build and push Frontend
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: ./frontend
           file: frontend/Dockerfile
