@@ -1,6 +1,6 @@
 # 🧠 KORTEX >_ Personal AI Assistant
 
-> **Version 1.0.0-alpha5** | Powered by Council LLM Architecture
+> **Version 1.0.0-alpha5-hotfix | Powered by Council LLM Architecture
 
 **Kortex Agent** is a comprehensive, context-aware AI assistant designed to act as your personal operating system. It integrates deeply with your life's data—values, health, projects, routines—to provide pragmatic, personalized advice.
 
@@ -9,18 +9,31 @@ Built with a modern **React frontend** and a robust **Flask backend**, Kortex su
 ## ✨ Key Features
 
 ### 🤖 Multi-Provider & Multimodal AI
-- **Providers:** Seamlessly switch between **Google Gemini**, **OpenAI**, and **Anthropic**.
-- **Models:** 11 models across 3 providers:
-  - **Google:** `gemini-2.5-flash`, `gemini-2.5-flash-lite`, `gemini-2.5-pro`, `gemini-3-pro-preview`
-  - **OpenAI:** `gpt-5-mini`, `gpt-5-nano`, `gpt-5`, `gpt-5.1`
-  - **Anthropic:** `claude-haiku-4-5`, `claude-haiku-3-5`, `claude-haiku-3`
+- **Providers:** 5 providers via **OpenRouter** — **Google Gemini**, **OpenAI**, **Anthropic**, **X-AI**, and **DeepSeek**.
+- **Models:** 15+ models across 5 providers:
+  - **Google:** `gemini-2.5-flash`, `gemini-2.5-flash-lite`, `gemini-2.5-pro`, `gemini-3-flash-preview`
+  - **OpenAI:** `gpt-5-mini`, `gpt-5-nano`, `gpt-5`, `gpt-5.1`, `gpt-5.2`
+  - **Anthropic:** `claude-opus-4.5`, `claude-haiku-4.5`, `claude-haiku-3.5`
+  - **X-AI:** `grok-4`, `grok-4.1-fast` (with native web search)
+  - **DeepSeek:** `deepseek-v3.2-speciale`
 - **Multimodal:** Upload **images, videos, audio files, and PDFs**. The AI can analyze and discuss them with you.
 - **Auto-Validation:** The UI automatically adapts file upload options based on the selected model's capabilities.
+- **Thinking Toggle:** 🧠 button enables extended reasoning for 30+ supported models.
+
+### � Web Search with Scout Intelligence
+- **3-Stage Pipeline:**
+  1. **Scout** (Gemini 2.5 Flash-Lite) — Analyzes query, decides if search needed
+  2. **Specialist** (Grok or Perplexity) — Performs actual web search
+  3. **Synthesizer** (User's model) — Generates final response
+- **Scout Decisions:** NO_SEARCH (0-60%), SUGGEST_SEARCH (61-99%), FORCE_SEARCH (100%)
+- **Two Specialists:** Grok 4.1-fast (NEWS/Twitter) or Perplexity Sonar Pro (RESEARCH)
+- **Scout Card UI:** Interactive card for user to choose search model
+- **Budget Protection:** FORCE searches always use cheaper Grok
 
 ### 🏛️ Elite Mode — *Powered by Council LLM*
-- **Raw LLM Power:** 3 top-tier models (Gemini 3 Pro, GPT-5.1, Claude Haiku 4.5) give their unbiased perspective **without personas**.
+- **Raw LLM Power:** 3 top-tier models (Gemini 2.5 Flash, GPT-5.2, Claude Opus 4.5) give their unbiased perspective **without personas**.
 - **Peer Review:** Each model anonymously reviews the others' responses.
-- **Chairman Synthesis:** A designated model moderates and synthesizes the final decision.
+- **Chairman Synthesis:** A designated model (GPT-5.2) moderates and synthesizes the final decision.
 
 ### 🐝 Hive Mode
 - **6 Specialized Personas:** DeepSeek models with distinct roles:

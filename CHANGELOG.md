@@ -5,6 +5,23 @@ All notable changes to Kortex Agent will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0-alpha5-hotfix] - 2025-12-20
+
+### Changed
+- **Dependencies Updated**:
+  - `openai` 2.9.0 → 2.11.0 (official GPT-5.2 support)
+  - `pypdf` 6.4.0 → 6.4.2
+  - `bandit` 1.8.0 → 1.9.2
+  - `flask-cors` 6.0.1 → 6.0.2
+  - `react-dom` 19.2.1 → 19.2.3 (Server Functions security patches)
+  - `eslint` 9.39.1 → 9.39.2
+  - `@eslint/js` 9.39.1 → 9.39.2
+  - `eslint-plugin-react-refresh` 0.4.24 → 0.4.25
+- **README Updated** — Providers, models, Web Search, and Thinking toggle now documented
+
+### Added
+- **Universal PDF Support** — All models now support PDF files via OpenRouter's built-in PDF processing plugin (previously only Gemini)
+
 ## [1.0.0-alpha5] - 2025-12-20
 
 ### Added

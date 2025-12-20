@@ -6,7 +6,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="kortex",
-    version="1.0.0-alpha4",
+    version="1.0.0-alpha5-hotfix",
     description="Kortex Agent - Personal AI Assistant with Council LLM",
     author="Jesse Saarinen",
     packages=find_packages(),
