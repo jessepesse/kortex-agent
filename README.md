@@ -1,6 +1,6 @@
 # 🧠 KORTEX >_ Personal AI Assistant
 
-> **Version 1.0.0-alpha4** | Powered by Council LLM Architecture
+> **Version 1.0.0-alpha5** | Powered by Council LLM Architecture
 
 **Kortex Agent** is a comprehensive, context-aware AI assistant designed to act as your personal operating system. It integrates deeply with your life's data—values, health, projects, routines—to provide pragmatic, personalized advice.
 
