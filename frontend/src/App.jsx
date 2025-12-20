@@ -60,11 +60,17 @@ function App() {
     }
   };
 
-  const handleSendMessage = async (text, files = []) => {
+  const handleSendMessage = async (text, files = [], reasoningConfig = null, webSearchEnabled = false, forceSearchModel = null) => {
     // Add user message immediately
     const userMessage = { role: 'user', content: text, timestamp: new Date().toISOString() };
     if (files.length > 0) {
       userMessage.files = files.map(f => ({ name: f.name, type: f.type }));
+    }
+    if (webSearchEnabled) {
+      userMessage.webSearch = true;
+      if (forceSearchModel) {
+        userMessage.searchModel = forceSearchModel;
+      }
     }
     setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
@@ -143,8 +149,8 @@ function App() {
         window.dispatchEvent(new CustomEvent('chatHistoryChanged'));
 
       } else {
-        // Standard chat (with optional files)
-        response = await api.sendMessage(text, messages, null, null, currentChatId, files);
+        // Standard chat (with optional files, reasoning config, and web search)
+        response = await api.sendMessage(text, messages, null, null, currentChatId, files, reasoningConfig, webSearchEnabled, forceSearchModel);
 
         if (response.chat_id && !currentChatId) {
           setCurrentChatId(response.chat_id);
@@ -162,6 +168,21 @@ function App() {
           // Append Scribe updates if any
           if (response.scribe_updates && response.scribe_updates.length > 0) {
             content += "\n\n" + response.scribe_updates.map(u => `📝 *System Update:* ${u}`).join("\n");
+          }
+          
+          // Append web search info if present
+          if (response.search_type) {
+            const searchIcon = response.search_type === 'NEWS' ? '📰' : '🔬';
+            content += `\n\n---\n${searchIcon} *Web Search (${response.search_type})* via ${response.specialist_model}`;
+            if (response.sources && response.sources.length > 0) {
+              content += "\n**Sources:** " + response.sources.map(s => `[${s.title || s.url}](${s.url})`).join(", ");
+            }
+            // Add Scout debug info if there was an override (FORCE used Grok but recommended Perplexity)
+            if (response.scout && response.scout.override_reason) {
+              const recommendedName = response.scout.recommended_model?.includes('perplexity') ? 'Perplexity' : 'Grok';
+              const usedName = response.scout.used_model?.includes('perplexity') ? 'Perplexity' : 'Grok';
+              content += `\n🕵️ *Scout ${response.scout.confidence}%:* Suositus: ${recommendedName} → Käytetty: ${usedName}`;
+            }
           }
 
           const aiMessage = {

@@ -9,6 +9,7 @@ const SettingsModal = ({ isOpen, onClose }) => {
     const [status, setStatus] = useState('');
     const [selectedModel, setSelectedModel] = useState('gemini-2.5-flash');
     const [selectedProvider, setSelectedProvider] = useState('google');
+    const [availableModels, setAvailableModels] = useState({});
 
     // Backup state
     const [conversations, setConversations] = useState([]);
@@ -59,24 +60,23 @@ const SettingsModal = ({ isOpen, onClose }) => {
         try {
             const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/config`);
             const config = await response.json();
-            console.log('📥 Loaded model settings:', config.default_model, config.default_provider);
+            console.log('📥 Loaded model settings:', config.default_model, config.default_provider, config.providers);
+            console.log('📥 OPENROUTER:', config.providers?.openrouter);
+            alert('Providers loaded: ' + Object.keys(config.providers || {}).join(', '));
             setSelectedModel(config.default_model || 'gemini-2.5-flash');
             setSelectedProvider(config.default_provider || 'google');
+            setAvailableModels(config.providers || {});
         } catch (error) {
             console.error('Failed to load model settings:', error);
         }
     };
 
     const handleModelChange = async (e) => {
-        const model = e.target.value;
-        console.log('🔄 Changing model to:', model);
+        const value = e.target.value;
+        // Value format: "provider:model_id"
+        const [provider, model] = value.split(':');
+        console.log('🔄 Changing model to:', model, 'provider:', provider);
         setSelectedModel(model);
-
-        // Determine provider from model name
-        let provider = 'google';
-        if (model.startsWith('gpt')) provider = 'openai';
-        else if (model.startsWith('claude')) provider = 'anthropic';
-
         setSelectedProvider(provider);
         console.log('📤 Saving to backend:', { provider, model });
 
@@ -92,8 +92,14 @@ const SettingsModal = ({ isOpen, onClose }) => {
             setStatus('Model updated!');
             setTimeout(() => setStatus(''), 2000);
 
+            // Find if model supports thinking
+            const modelData = availableModels[provider]?.find(m => 
+                (typeof m === 'object' ? m.id : m) === model
+            );
+            const supportsThinking = typeof modelData === 'object' && modelData.thinking === true;
+
             // Trigger reload of Chat component's model settings
-            window.dispatchEvent(new CustomEvent('modelChanged', { detail: { model, provider } }));
+            window.dispatchEvent(new CustomEvent('modelChanged', { detail: { model, provider, supportsThinking } }));
         } catch (error) {
             console.error('❌ Failed to save model:', error);
             setStatus(`Error: ${error.message}`);
@@ -259,37 +265,37 @@ const SettingsModal = ({ isOpen, onClose }) => {
                         </div>
 
                         <h3>AI Configuration</h3>
+                        {/* Debug: show available models count */}
+                        <p style={{fontSize: '10px', color: '#666'}}>
+                            Providers: {Object.keys(availableModels).join(', ') || 'none loaded'}
+                        </p>
                         <div className="setting-group">
                             <label>Standard Chat Model</label>
                             <select
                                 className="model-select"
-                                value={selectedModel}
+                                value={`${selectedProvider}:${selectedModel}`}
                                 onChange={handleModelChange}
                             >
-                                <optgroup label="Google">
-                                    <option value="gemini-2.5-flash">Gemini 2.5 Flash (Default)</option>
-                                    <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash Lite</option>
-                                    <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
-                                    <option value="gemini-3-pro-preview">Gemini 3 Pro Preview</option>
-                                </optgroup>
-                                <optgroup label="OpenAI">
-                                    <option value="gpt-5-mini">GPT-5 Mini</option>
-                                    <option value="gpt-5-nano">GPT-5 Nano</option>
-                                    <option value="gpt-5">GPT-5</option>
-                                    <option value="gpt-5.1">GPT-5.1</option>
-                                </optgroup>
-                                <optgroup label="Anthropic">
-                                    <option value="claude-haiku-4-5">Claude Haiku 4.5</option>
-                                    <option value="claude-haiku-3-5">Claude Haiku 3.5</option>
-                                    <option value="claude-haiku-3">Claude Haiku 3</option>
-                                </optgroup>
+                                {Object.entries(availableModels).map(([provider, models]) => (
+                                    <optgroup key={provider} label={provider.charAt(0).toUpperCase() + provider.slice(1)}>
+                                        {models.map((model) => {
+                                            const modelId = typeof model === 'object' ? model.id : model;
+                                            const displayName = modelId.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+                                            return (
+                                                <option key={modelId} value={`${provider}:${modelId}`}>
+                                                    {displayName}
+                                                </option>
+                                            );
+                                        })}
+                                    </optgroup>
+                                ))}
                             </select>
                         </div>
                         <div className="setting-group">
                             <label>Council Chairman</label>
                             <select className="model-select">
                                 <option value="gemini-3-pro-preview">Gemini 3 Pro Preview (Default)</option>
-                                <option value="gpt-5">GPT-5</option>
+                                <option value="gpt-5.2">GPT-5.2</option>
                                 <option value="claude-opus-4-5">Claude Opus 4.5</option>
                             </select>
                         </div>

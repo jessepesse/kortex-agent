@@ -1,0 +1,181 @@
+/**
+ * ScoutCard Styles
+ */
+
+.scout-card {
+  background: linear-gradient(135deg, rgba(30, 35, 50, 0.95), rgba(40, 45, 65, 0.95));
+  border: 1px solid rgba(100, 120, 255, 0.3);
+  border-radius: 12px;
+  padding: 16px;
+  margin: 12px 0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.scout-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.scout-icon {
+  font-size: 1.2rem;
+}
+
+.scout-title {
+  font-weight: 600;
+  color: #e0e0e0;
+  flex: 1;
+}
+
+.scout-confidence {
+  font-size: 0.85rem;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.scout-confidence.high {
+  background: rgba(255, 180, 50, 0.2);
+  color: #ffb432;
+}
+
+.scout-confidence.medium {
+  background: rgba(100, 150, 255, 0.2);
+  color: #6496ff;
+}
+
+.scout-close {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0 4px;
+  transition: color 0.2s;
+}
+
+.scout-close:hover {
+  color: #fff;
+}
+
+.scout-card-body {
+  margin-bottom: 12px;
+}
+
+.scout-reason {
+  color: #c0c0c0;
+  font-size: 0.9rem;
+  margin: 0 0 10px 0;
+  line-height: 1.4;
+}
+
+.scout-recommendation {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.scout-type {
+  font-size: 0.8rem;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.scout-type.news {
+  background: rgba(29, 161, 242, 0.2);
+  color: #1da1f2;
+}
+
+.scout-type.research {
+  background: rgba(130, 80, 255, 0.2);
+  color: #a280ff;
+}
+
+.scout-suggests {
+  color: #888;
+  font-size: 0.85rem;
+}
+
+.scout-card-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.scout-btn {
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+
+.scout-btn.primary {
+  background: linear-gradient(135deg, #4a7cff, #6e4aff);
+  color: white;
+  border: none;
+}
+
+.scout-btn.primary:hover {
+  background: linear-gradient(135deg, #5a8cff, #7e5aff);
+  transform: translateY(-1px);
+}
+
+.scout-btn.secondary {
+  background: rgba(255, 255, 255, 0.05);
+  color: #c0c0c0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.scout-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.scout-btn.skip {
+  background: none;
+  color: #888;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.scout-btn.skip:hover {
+  color: #c0c0c0;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Debug badge for FORCE_SEARCH */
+.scout-debug-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 180, 50, 0.1);
+  border: 1px solid rgba(255, 180, 50, 0.3);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  color: #c0a060;
+  margin-top: 8px;
+}
+
+.scout-debug-badge .used {
+  color: #88cc88;
+}
+
+.scout-debug-badge .recommended {
+  color: #ffb432;
+}

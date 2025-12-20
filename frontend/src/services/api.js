@@ -16,11 +16,29 @@ const api = axios.create({
 /**
  * Send a chat message to AI
  */
-export const sendMessage = async (message, history = [], model = null, provider = null, chatId = null, files = []) => {
+export const sendMessage = async (message, history = [], model = null, provider = null, chatId = null, files = [], reasoningConfig = null, webSearchEnabled = false, forceSearchModel = null) => {
+  // If web search is enabled, use the websearch endpoint
+  if (webSearchEnabled) {
+    const payload = { 
+      message, 
+      history,
+      reasoning_enabled: reasoningConfig?.enabled || false
+    };
+    if (model) payload.model = model;
+    if (provider) payload.provider = provider;
+    if (chatId) payload.chat_id = chatId;
+    if (forceSearchModel) payload.force_model = forceSearchModel;
+    
+    const response = await api.post('/api/chat/websearch', payload);
+    return response.data;
+  }
+  
+  // Standard chat endpoint
   const payload = { message, history };
   if (model) payload.model = model;
   if (provider) payload.provider = provider;
   if (chatId) payload.chat_id = chatId;
+  if (reasoningConfig) payload.openrouter_reasoning_config = reasoningConfig;
 
   // Process files if provided
   if (files && files.length > 0) {
@@ -53,6 +71,15 @@ export const getHistory = async () => {
 
 export const getChat = async (chatId) => {
   const response = await api.get(`/api/history/${chatId}`);
+  return response.data;
+};
+
+/**
+ * Run Scout analysis to check if web search is needed
+ * Returns: { decision, confidence, search_type, reason, recommended_model }
+ */
+export const scoutAnalyze = async (message, history = []) => {
+  const response = await api.post('/api/chat/scout', { message, history });
   return response.data;
 };
 

@@ -8,6 +8,8 @@ import LoadingIndicator from './LoadingIndicator';
 import CouncilView from './CouncilView';
 import MegaView from './MegaView';
 import FilePreview from './FilePreview';
+import ScoutCard from './ScoutCard';
+import { scoutAnalyze } from '../services/api';
 import './Chat.css';
 
 const Chat = ({ messages, onSendMessage, isLoading, isSidebarOpen, contextData, councilLoading }) => {
@@ -19,6 +21,14 @@ const Chat = ({ messages, onSendMessage, isLoading, isSidebarOpen, contextData, 
     const fileInputRef = useRef(null);
     const [currentModel, setCurrentModel] = useState(null);
     const [currentProvider, setCurrentProvider] = useState(null);
+    const [thinkingEnabled, setThinkingEnabled] = useState(false);
+    const [supportsThinking, setSupportsThinking] = useState(false);
+    const [webSearchEnabled, setWebSearchEnabled] = useState(false);
+    
+    // Scout state
+    const [scoutResult, setScoutResult] = useState(null);
+    const [scoutLoading, setScoutLoading] = useState(false);
+    const [pendingScoutMessage, setPendingScoutMessage] = useState(null);
 
     // Model-specific file support configuration
     const MODEL_FILE_SUPPORT = {
@@ -71,6 +81,31 @@ const Chat = ({ messages, onSendMessage, isLoading, isSidebarOpen, contextData, 
             accept: 'image/*,.pdf,.txt,.md',
             types: ['image/', 'application/pdf', 'text/plain', 'text/markdown'],
             description: 'Images, PDF, Text'
+        },
+        'claude-opus-4-5': {
+            accept: 'image/*,.pdf,.txt,.md',
+            types: ['image/', 'application/pdf', 'text/plain', 'text/markdown'],
+            description: 'Images, PDF, Text'
+        },
+        'gpt-5.2': {
+            accept: 'image/*,.txt,.md',
+            types: ['image/', 'text/plain', 'text/markdown'],
+            description: 'Images, Text'
+        },
+        'grok-4': {
+            accept: 'image/*,.txt,.md',
+            types: ['image/', 'text/plain', 'text/markdown'],
+            description: 'Images, Text'
+        },
+        'grok-4.1-fast': {
+            accept: 'image/*,.txt,.md',
+            types: ['image/', 'text/plain', 'text/markdown'],
+            description: 'Images, Text'
+        },
+        'deepseek-v3.2-speciale': {
+            accept: '.txt,.md',
+            types: ['text/plain', 'text/markdown'],
+            description: 'Text only'
         }
     };
 
@@ -81,11 +116,19 @@ const Chat = ({ messages, onSendMessage, isLoading, isSidebarOpen, contextData, 
                 const settings = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/config`).then(r => r.json());
                 setCurrentModel(settings.default_model);
                 setCurrentProvider(settings.default_provider);
+                
+                // Check if current model supports thinking
+                const provider = settings.default_provider;
+                const modelData = settings.providers?.[provider]?.find(m => 
+                    (typeof m === 'object' ? m.id : m) === settings.default_model
+                );
+                setSupportsThinking(typeof modelData === 'object' && modelData.thinking === true);
             } catch (error) {
                 console.error('Failed to load settings:', error);
                 // Fallback
                 setCurrentModel('gemini-2.5-flash');
                 setCurrentProvider('google');
+                setSupportsThinking(false);
             }
         };
         loadSettings();
@@ -94,6 +137,11 @@ const Chat = ({ messages, onSendMessage, isLoading, isSidebarOpen, contextData, 
         const handleModelChange = (event) => {
             setCurrentModel(event.detail.model);
             setCurrentProvider(event.detail.provider);
+            setSupportsThinking(event.detail.supportsThinking || false);
+            // Reset thinking toggle when switching models
+            if (!event.detail.supportsThinking) {
+                setThinkingEnabled(false);
+            }
         };
         window.addEventListener('modelChanged', handleModelChange);
 
@@ -175,7 +223,7 @@ const Chat = ({ messages, onSendMessage, isLoading, isSidebarOpen, contextData, 
         });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if ((input.trim() || attachedFiles.length > 0) && !isLoading) {
             let message = input.trim();
@@ -188,15 +236,91 @@ const Chat = ({ messages, onSendMessage, isLoading, isSidebarOpen, contextData, 
             } else if (councilMode === 'mega') {
                 message = `/mega ${message}`;
             }
-            onSendMessage(message, attachedFiles);
+            
+            // Build reasoning config if thinking is enabled
+            const reasoningConfig = thinkingEnabled && supportsThinking 
+                ? { enabled: true } 
+                : null;
+            
+            // If web search is enabled, run Scout first to get recommendation
+            if (webSearchEnabled && !councilMode) {
+                setScoutLoading(true);
+                try {
+                    const scout = await scoutAnalyze(message, messages);
+                    setScoutResult(scout);
+                    setPendingScoutMessage({ message, files: attachedFiles, reasoningConfig });
+                    setInput('');
+                    // Don't send yet - wait for user to choose from Scout card
+                    setScoutLoading(false);
+                    return;
+                } catch (error) {
+                    console.error('Scout analysis failed:', error);
+                    setScoutLoading(false);
+                    // Fall through to regular web search
+                }
+            }
+            
+            onSendMessage(message, attachedFiles, reasoningConfig, webSearchEnabled);
             setInput('');
             setCouncilMode(null); // Reset council mode after sending
+            setWebSearchEnabled(false); // Reset web search after sending
             // Clean up preview URLs
             attachedFiles.forEach(file => {
                 if (file.preview) URL.revokeObjectURL(file.preview);
             });
             setAttachedFiles([]);
         }
+    };
+    
+    // Scout action handlers
+    const handleScoutSearchWithGrok = () => {
+        if (pendingScoutMessage) {
+            onSendMessage(
+                pendingScoutMessage.message, 
+                pendingScoutMessage.files, 
+                pendingScoutMessage.reasoningConfig, 
+                true, // webSearchEnabled
+                'grok' // forceSearchModel
+            );
+            clearScoutState();
+        }
+    };
+    
+    const handleScoutSearchWithPerplexity = () => {
+        if (pendingScoutMessage) {
+            onSendMessage(
+                pendingScoutMessage.message, 
+                pendingScoutMessage.files, 
+                pendingScoutMessage.reasoningConfig, 
+                true, // webSearchEnabled
+                'perplexity' // forceSearchModel
+            );
+            clearScoutState();
+        }
+    };
+    
+    const handleScoutSkip = () => {
+        if (pendingScoutMessage) {
+            // Send without web search
+            onSendMessage(
+                pendingScoutMessage.message, 
+                pendingScoutMessage.files, 
+                pendingScoutMessage.reasoningConfig, 
+                false // webSearchEnabled = false (skip search)
+            );
+            clearScoutState();
+        }
+    };
+    
+    const clearScoutState = () => {
+        setScoutResult(null);
+        setPendingScoutMessage(null);
+        setWebSearchEnabled(false);
+        // Clean up files
+        attachedFiles.forEach(file => {
+            if (file.preview) URL.revokeObjectURL(file.preview);
+        });
+        setAttachedFiles([]);
     };
 
     const handleKeyDown = (e) => {
@@ -263,6 +387,17 @@ const Chat = ({ messages, onSendMessage, isLoading, isSidebarOpen, contextData, 
                     {isLoading && !councilLoading && <LoadingIndicator />}
                     <div ref={messagesEndRef} />
                 </div>
+            )}
+
+            {/* Scout Card - shows when Scout has analyzed and is waiting for user decision */}
+            {scoutResult && pendingScoutMessage && (
+                <ScoutCard 
+                    scoutResult={scoutResult}
+                    onSearchWithGrok={handleScoutSearchWithGrok}
+                    onSearchWithPerplexity={handleScoutSearchWithPerplexity}
+                    onSkip={handleScoutSkip}
+                    onClose={clearScoutState}
+                />
             )}
 
             <form className="chat-input-form" onSubmit={handleSubmit}>
@@ -335,6 +470,26 @@ const Chat = ({ messages, onSendMessage, isLoading, isSidebarOpen, contextData, 
                             </button>
                         </div>
                     </div>
+                    {supportsThinking && (
+                        <button
+                            type="button"
+                            className={`thinking-toggle ${thinkingEnabled ? 'active' : ''}`}
+                            title={thinkingEnabled ? 'Thinking mode enabled' : 'Enable thinking mode'}
+                            disabled={isLoading}
+                            onClick={() => setThinkingEnabled(!thinkingEnabled)}
+                        >
+                            🧠
+                        </button>
+                    )}
+                    <button
+                        type="button"
+                        className={`web-search-toggle ${webSearchEnabled ? 'active' : ''}`}
+                        title={webSearchEnabled ? 'Web Search enabled (Scout → Grok/Perplexity → Your Model)' : 'Enable Web Search'}
+                        disabled={isLoading || scoutLoading}
+                        onClick={() => setWebSearchEnabled(!webSearchEnabled)}
+                    >
+                        {scoutLoading ? '🔄' : '🌐'}
+                    </button>
                     <button
                         type="button"
                         className="chat-attach-button"

@@ -25,6 +25,7 @@ const SettingsModal = ({ isOpen, onClose }) => {
         setJsonContent,
         selectedModel,
         selectedProvider,
+        availableModels,
         handleModelChange,
         conversations,
         selectedConversations,
@@ -68,6 +69,7 @@ const SettingsModal = ({ isOpen, onClose }) => {
                         <ModelSettings
                             selectedModel={selectedModel}
                             selectedProvider={selectedProvider}
+                            availableModels={availableModels}
                             onModelChange={handleModelChange}
                             language={dataFiles.profile?.language}
                             onLanguageChange={updateLanguage}

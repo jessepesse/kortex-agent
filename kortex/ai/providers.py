@@ -1,34 +1,77 @@
-"""LLM provider implementations"""
+"""LLM provider implementations - All via OpenRouter"""
 
-import google.generativeai as genai
 from openai import OpenAI
 
 
+# Model mapping for OpenRouter
+PROVIDER_MODEL_MAP = {
+    "openai": "openai",
+    "google": "google", 
+    "anthropic": "anthropic",
+    "openrouter": None  # Already in correct format
+}
+
+
 class LLMClient:
-    """Unified interface for OpenAI and Gemini"""
+    """Unified interface - All providers routed through OpenRouter"""
     
-    def __init__(self, provider, model, api_key):
+    def __init__(self, provider, model, api_key, openrouter_key=None):
         self.provider = provider
         self.model = model
+        self.openrouter_key = openrouter_key
         
-        if provider == "openai":
-            self.client = OpenAI(api_key=api_key)
-        elif provider == "google":
-            genai.configure(api_key=api_key)
-            self.client = None  # Gemini uses global config
+        # Always use OpenRouter if key is available
+        if openrouter_key:
+            self.client = OpenAI(
+                api_key=openrouter_key,
+                base_url="https://openrouter.ai/api/v1"
+            )
+            self.use_openrouter = True
+        elif provider == "openrouter":
+            self.client = OpenAI(
+                api_key=api_key,
+                base_url="https://openrouter.ai/api/v1"
+            )
+            self.use_openrouter = True
         else:
-            raise ValueError(f"Unknown provider: {provider}")
+            # Fallback to direct API (legacy)
+            self.client = OpenAI(api_key=api_key)
+            self.use_openrouter = False
+    
+    def _get_openrouter_model(self):
+        """Convert model name to OpenRouter format"""
+        if "/" in self.model:
+            return self.model
+        
+        prefix = PROVIDER_MODEL_MAP.get(self.provider, "google")
+        if prefix:
+            return f"{prefix}/{self.model}"
+        return self.model
     
     def chat(self, messages, tools=None):
         """Send chat message with optional tools"""
-        if self.provider == "openai":
-            return self._chat_openai(messages, tools)
+        if self.use_openrouter:
+            return self._chat_openrouter(messages, tools)
         else:
-            return self._chat_gemini(messages, tools)
+            return self._chat_openai(messages, tools)
+    
+    def _chat_openrouter(self, messages, tools):
+        """OpenRouter chat completion (OpenAI-compatible)"""
+        openrouter_model = self._get_openrouter_model()
+        
+        kwargs = {
+            "model": openrouter_model,
+            "messages": messages
+        }
+        
+        if tools:
+            kwargs["tools"] = tools
+        
+        response = self.client.chat.completions.create(**kwargs)
+        return response
     
     def _chat_openai(self, messages, tools):
-        """OpenAI chat completion"""
-        # Convert tools to OpenAI format
+        """Fallback OpenAI chat completion"""
         openai_tools = []
         if tools:
             for tool_func in tools:
@@ -52,19 +95,4 @@ class LLMClient:
             tools=openai_tools if openai_tools else None
         )
         
-        return response
-    
-    def _chat_gemini(self, messages, tools):
-        """Gemini chat completion"""
-        # Convert messages to Gemini format
-        # For simplicity, use the existing Gemini approach
-        model = genai.GenerativeModel(
-            model_name=self.model,
-            tools=list(tools) if tools else None
-        )
-        
-        # Extract last user message
-        user_message = messages[-1]["content"] if messages else ""
-        
-        response = model.generate_content(user_message)
         return response

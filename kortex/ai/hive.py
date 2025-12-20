@@ -6,7 +6,6 @@ Uses OpenRouter API for DeepSeek access
 import asyncio
 import json
 from openai import AsyncOpenAI
-import google.generativeai as genai
 from ..config import load_config
 
 
@@ -17,17 +16,13 @@ class HiveService:
         self.config = load_config()
         self.api_keys = self.config.get('api_keys', {})
         
-        # Initialize OpenRouter client for DeepSeek
+        # Initialize OpenRouter client for all models (DeepSeek + Chairman)
         self.openrouter_client = None
         if self.api_keys.get('openrouter'):
             self.openrouter_client = AsyncOpenAI(
                 base_url="https://openrouter.ai/api/v1",
                 api_key=self.api_keys['openrouter']
             )
-        
-        # Initialize Gemini for Chairman
-        if self.api_keys.get('google'):
-            genai.configure(api_key=self.api_keys['google'])
     
     # Define the 6 Hive personas
     PERSONAS = {
@@ -321,13 +316,25 @@ Be concise (2-3 sentences per response). Do not reveal your identity."""
             return None
     
     async def _synthesize_chairman(self, message, valid_responses, peer_reviews, context):
-        """Chairman synthesizes Hive responses"""
+        """Chairman synthesizes Hive responses via OpenRouter"""
         if not valid_responses:
             return "Hive failed to reach quorum. No valid responses received."
         
         # Get chairman model from config (default: gemini-3-pro-preview)
         chairman_model = self.config.get('chairman_model', 'gemini-3-pro-preview')
-        model = genai.GenerativeModel(chairman_model)
+        
+        # Map to OpenRouter format
+        if '/' not in chairman_model:
+            if 'gemini' in chairman_model.lower():
+                or_model = f"google/{chairman_model}"
+            elif 'gpt' in chairman_model.lower():
+                or_model = f"openai/{chairman_model}"
+            elif 'claude' in chairman_model.lower():
+                or_model = f"anthropic/{chairman_model}"
+            else:
+                or_model = f"google/{chairman_model}"
+        else:
+            or_model = chairman_model
         
         # Format responses
         responses_text = "\n\n".join([
@@ -364,11 +371,10 @@ Format your response in Markdown.
 """
         
         try:
-            loop = asyncio.get_event_loop()
-            response = await loop.run_in_executor(
-                None, 
-                lambda: model.generate_content(prompt)
+            response = await self.openrouter_client.chat.completions.create(
+                model=or_model,
+                messages=[{"role": "user", "content": prompt}]
             )
-            return response.text
+            return response.choices[0].message.content
         except Exception as e:
             return f"**Chairman Error:** Failed to synthesize. Error: {str(e)}"

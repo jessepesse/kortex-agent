@@ -49,7 +49,9 @@ def register_config_routes(app):
         if provider not in cfg['models']:
             raise ValidationError(f"Invalid provider: {provider}")
         
-        if model not in cfg['models'][provider]:
+        # Check if model exists in provider's model list (now objects with 'id' field)
+        model_ids = [m['id'] if isinstance(m, dict) else m for m in cfg['models'][provider]]
+        if model not in model_ids:
             raise ValidationError(f"Invalid model: {model}")
         
         cfg['default_provider'] = provider

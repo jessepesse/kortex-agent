@@ -14,6 +14,7 @@ export function useSettings(isOpen) {
     const [status, setStatus] = useState('');
     const [selectedModel, setSelectedModel] = useState('gemini-2.5-flash');
     const [selectedProvider, setSelectedProvider] = useState('google');
+    const [availableModels, setAvailableModels] = useState({});
     const [conversations, setConversations] = useState([]);
     const [selectedConversations, setSelectedConversations] = useState([]);
 
@@ -59,20 +60,20 @@ export function useSettings(isOpen) {
         try {
             const response = await fetch(`${API_URL}/api/config`);
             const config = await response.json();
+            console.log('📥 Loaded model settings:', config.default_model, config.default_provider, config.providers);
             setSelectedModel(config.default_model || 'gemini-2.5-flash');
             setSelectedProvider(config.default_provider || 'google');
+            setAvailableModels(config.providers || {});
         } catch (error) {
             console.error('Failed to load model settings:', error);
         }
     };
 
-    const handleModelChange = async (model) => {
+    const handleModelChange = async (providerAndModel) => {
+        // Value format: "provider:model_id"
+        const [provider, model] = providerAndModel.split(':');
+        console.log('🔄 Changing model to:', model, 'provider:', provider);
         setSelectedModel(model);
-
-        // Determine provider from model name
-        let provider = 'google';
-        if (model.startsWith('gpt')) provider = 'openai';
-        else if (model.startsWith('claude')) provider = 'anthropic';
         setSelectedProvider(provider);
 
         try {
@@ -84,7 +85,14 @@ export function useSettings(isOpen) {
             await response.json();
             setStatus('Model updated!');
             setTimeout(() => setStatus(''), 2000);
-            window.dispatchEvent(new CustomEvent('modelChanged', { detail: { model, provider } }));
+
+            // Find if model supports thinking
+            const modelData = availableModels[provider]?.find(m => 
+                (typeof m === 'object' ? m.id : m) === model
+            );
+            const supportsThinking = typeof modelData === 'object' && modelData.thinking === true;
+
+            window.dispatchEvent(new CustomEvent('modelChanged', { detail: { model, provider, supportsThinking } }));
         } catch (error) {
             setStatus(`Error: ${error.message}`);
         }
@@ -126,6 +134,7 @@ export function useSettings(isOpen) {
         // Model state
         selectedModel,
         selectedProvider,
+        availableModels,
         handleModelChange,
 
         // Backup state

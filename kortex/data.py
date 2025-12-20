@@ -308,7 +308,18 @@ def list_conversations() -> list[JsonDict]:
             with open(filepath, 'r') as f:
                 data = json.load(f)
                 messages = data.get("messages", [])
-                preview = messages[-1].get("content", "")[:50] if messages else ""
+                
+                # Handle various content formats (string, dict with 'response', etc.)
+                preview = ""
+                if messages:
+                    last_content = messages[-1].get("content", "")
+                    if isinstance(last_content, dict):
+                        # Content is a dict (e.g., full API response object)
+                        preview = str(last_content.get("response", ""))[:50]
+                    elif isinstance(last_content, str):
+                        preview = last_content[:50]
+                    else:
+                        preview = str(last_content)[:50]
                 
                 conversations.append({
                     "id": data.get("id"),

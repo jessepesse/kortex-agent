@@ -17,21 +17,27 @@ def register_council_routes(app):
     """Register council/hive/mega endpoints"""
     
     def _generate_title(message, cfg, mode_name):
-        """Helper to generate AI title for council chats"""
+        """Helper to generate AI title for council chats via OpenRouter"""
         try:
-            import google.generativeai as genai
-            genai.configure(api_key=cfg['api_keys'].get('google'))
+            from openai import OpenAI
+            or_client = OpenAI(
+                base_url="https://openrouter.ai/api/v1",
+                api_key=cfg['api_keys'].get('openrouter')
+            )
             
-            title_model = genai.GenerativeModel('gemini-2.5-flash-lite')
             title_prompt = f"""Generate a short, concise title (max 40 characters) for this {mode_name} discussion.
 User question: {message}
 
 Respond with ONLY the title in Finnish, no quotes or extra text. Be specific and descriptive."""
             
-            title_response = title_model.generate_content(title_prompt)
+            title_response = or_client.chat.completions.create(
+                model="google/gemini-2.5-flash-lite",
+                messages=[{"role": "user", "content": title_prompt}],
+                max_tokens=50
+            )
             
-            if hasattr(title_response, 'text') and title_response.text:
-                return title_response.text.strip()[:50]
+            if title_response.choices[0].message.content:
+                return title_response.choices[0].message.content.strip()[:50]
         except Exception as e:
             print(f"⚠️ Failed to generate title: {e}")
         

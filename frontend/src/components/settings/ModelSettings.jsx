@@ -7,6 +7,7 @@ import React from 'react';
 const ModelSettings = ({
     selectedModel,
     selectedProvider,
+    availableModels,
     onModelChange,
     language,
     onLanguageChange
@@ -22,26 +23,22 @@ const ModelSettings = ({
                 <label>Standard Chat Model</label>
                 <select
                     className="model-select"
-                    value={selectedModel}
+                    value={`${selectedProvider}:${selectedModel}`}
                     onChange={handleChange}
                 >
-                    <optgroup label="Google">
-                        <option value="gemini-2.5-flash">Gemini 2.5 Flash (Default)</option>
-                        <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash Lite</option>
-                        <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
-                        <option value="gemini-3-pro-preview">Gemini 3 Pro Preview</option>
-                    </optgroup>
-                    <optgroup label="OpenAI">
-                        <option value="gpt-5-mini">GPT-5 Mini</option>
-                        <option value="gpt-5-nano">GPT-5 Nano</option>
-                        <option value="gpt-5">GPT-5</option>
-                        <option value="gpt-5.1">GPT-5.1</option>
-                    </optgroup>
-                    <optgroup label="Anthropic">
-                        <option value="claude-haiku-4-5">Claude Haiku 4.5</option>
-                        <option value="claude-haiku-3-5">Claude Haiku 3.5</option>
-                        <option value="claude-haiku-3">Claude Haiku 3</option>
-                    </optgroup>
+                    {Object.entries(availableModels || {}).map(([provider, models]) => (
+                        <optgroup key={provider} label={provider.charAt(0).toUpperCase() + provider.slice(1)}>
+                            {models.map((model) => {
+                                const modelId = typeof model === 'object' ? model.id : model;
+                                const displayName = modelId.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+                                return (
+                                    <option key={modelId} value={`${provider}:${modelId}`}>
+                                        {displayName}
+                                    </option>
+                                );
+                            })}
+                        </optgroup>
+                    ))}
                 </select>
             </div>
 
@@ -49,7 +46,7 @@ const ModelSettings = ({
                 <label>Council Chairman</label>
                 <select className="model-select">
                     <option value="gemini-3-pro-preview">Gemini 3 Pro Preview (Default)</option>
-                    <option value="gpt-5">GPT-5</option>
+                    <option value="gpt-5.2">GPT-5.2</option>
                     <option value="claude-opus-4-5">Claude Opus 4.5</option>
                 </select>
             </div>

@@ -8,6 +8,20 @@ import './Message.css';
 
 const Message = ({ message }) => {
     const isUser = message.role === 'user';
+    
+    // Handle content that might be a string or an object (e.g., API response)
+    const getContent = (content) => {
+        if (typeof content === 'string') {
+            return content;
+        }
+        if (content && typeof content === 'object') {
+            // If it's an API response object, extract the response field
+            return content.response || content.error || JSON.stringify(content);
+        }
+        return String(content || '');
+    };
+    
+    const content = getContent(message.content);
 
     return (
         <div className={`message ${isUser ? 'user' : 'assistant'}`}>
@@ -16,9 +30,9 @@ const Message = ({ message }) => {
             </div>
             <div className="message-content">
                 {isUser ? (
-                    <p>{message.content}</p>
+                    <p>{content}</p>
                 ) : (
-                    <ReactMarkdown>{message.content}</ReactMarkdown>
+                    <ReactMarkdown>{content}</ReactMarkdown>
                 )}
             </div>
         </div>

@@ -9,6 +9,21 @@ from ..data import load_all_context
 from ..tools import TOOL_FUNCTIONS, TOOL_DEFINITIONS, GEMINI_TOOL_DEFINITIONS
 
 
+def sanitize_content(content):
+    """
+    Sanitize message content to ensure it's a string.
+    Handles cases where content might be a dict (e.g., full API response object).
+    """
+    if isinstance(content, str):
+        return content
+    if content is None:
+        return ""
+    if isinstance(content, dict):
+        # If it's an API response object, extract the response field
+        return content.get('response', '') or content.get('error', '') or json.dumps(content)
+    return str(content)
+
+
 def build_system_prompt(context):
     """Build system prompt with context"""
     # Get current date and time in Finnish locale
@@ -91,16 +106,80 @@ The response should be 80%% helpful content, 20%% acknowledgment.
     return prompt
 
 
-def get_ai_response(message, history, model, provider, api_key, files=None):
+# OpenRouter model mapping - maps short names to OpenRouter format
+OPENROUTER_MODEL_MAP = {
+    # Google models
+    "gemini-3-pro-preview": "google/gemini-3-pro-preview",
+    "gemini-3-flash-preview": "google/gemini-3-flash-preview",
+    "gemini-2.5-pro": "google/gemini-2.5-pro",
+    "gemini-2.5-flash": "google/gemini-2.5-flash",
+    "gemini-2.5-flash-lite": "google/gemini-2.5-flash-lite",
+    # OpenAI models
+    "gpt-5": "openai/gpt-5",
+    "gpt-5-mini": "openai/gpt-5-mini",
+    "gpt-5-nano": "openai/gpt-5-nano",
+    "gpt-5.1": "openai/gpt-5.1",
+    "gpt-5.2": "openai/gpt-5.2",
+    # Anthropic models
+    "claude-opus-4-5": "anthropic/claude-opus-4-5",
+    "claude-haiku-4-5": "anthropic/claude-haiku-4-5",
+    "claude-haiku-3-5": "anthropic/claude-3-5-haiku",
+    "claude-haiku-3": "anthropic/claude-3-haiku",
+    "claude-3-5-sonnet-20241022": "anthropic/claude-3.5-sonnet",
+    # X-AI (Grok) models
+    "grok-4": "x-ai/grok-4",
+    "grok-4.1-fast": "x-ai/grok-4.1-fast",
+    # DeepSeek models
+    "deepseek-v3.2-speciale": "deepseek/deepseek-v3.2-speciale",
+}
+
+# Models that support reasoning/thinking via OpenRouter
+# OpenRouter supports reasoning on most models with extra_body={"reasoning": {"enabled": True}}
+THINKING_MODELS = {
+    # Google
+    "google/gemini-3-pro-preview",
+    "google/gemini-3-flash-preview",
+    "google/gemini-2.5-pro",
+    "google/gemini-2.5-flash",
+    "gemini-3-pro-preview",
+    "gemini-3-flash-preview",
+    "gemini-2.5-pro",
+    "gemini-2.5-flash",
+    "gemini-2.5-flash-lite",
+    # OpenAI
+    "openai/gpt-5.2",
+    "openai/gpt-5.1",
+    "openai/gpt-5",
+    "gpt-5.2",
+    "gpt-5.1",
+    "gpt-5",
+    # Anthropic
+    "anthropic/claude-opus-4-5",
+    "anthropic/claude-haiku-4-5",
+    "claude-opus-4-5",
+    "claude-haiku-4-5",
+    # X-AI (Grok)
+    "x-ai/grok-4",
+    "x-ai/grok-4.1-fast",
+    "grok-4",
+    "grok-4.1-fast",
+    # DeepSeek
+    "deepseek/deepseek-v3.2-speciale",
+    "deepseek-v3.2-speciale",
+}
+
+
+def get_ai_response(message, history, model, provider, api_key, files=None, openrouter_reasoning_config=None):
     """Get AI response from specified provider
     
     Args:
         message: User message string
         history: List of previous messages
         model: Model name
-        provider: 'openai' or 'google'
+        provider: 'openai', 'google', 'anthropic', or 'openrouter'
         api_key: API key for the provider
         files: Optional list of uploaded files [{name, type, data (base64)}]
+        openrouter_reasoning_config: Optional dictionary for OpenRouter reasoning config
         
     Returns:
         dict with keys: response, function_calls, error
@@ -110,12 +189,43 @@ def get_ai_response(message, history, model, provider, api_key, files=None):
         context = load_all_context()
         system_prompt = build_system_prompt(context)
         
-        if provider == "openai":
-            return _get_openai_response(message, history, model, api_key, system_prompt, files)
-        elif provider == "google":
-            return _get_gemini_response(message, history, model, api_key, system_prompt, files)
+        # Route Google models through OpenRouter for better file support
+        if provider == "google":
+            # Get OpenRouter API key from config
+            from ..config import load_config
+            config = load_config()
+            openrouter_key = config.get('api_keys', {}).get('openrouter')
+            
+            if openrouter_key:
+                # Use OpenRouter for Gemini models
+                return _get_openrouter_response(
+                    message, history, model, openrouter_key, system_prompt, files, 
+                    openrouter_reasoning_config
+                )
+            else:
+                # Fallback to direct Gemini API if no OpenRouter key
+                return _get_gemini_response(message, history, model, api_key, system_prompt, files)
+        
+        elif provider == "openai":
+            # Route OpenAI through OpenRouter
+            from ..config import load_config
+            config = load_config()
+            openrouter_key = config.get('api_keys', {}).get('openrouter')
+            if openrouter_key:
+                return _get_openrouter_response(message, history, model, openrouter_key, system_prompt, files, openrouter_reasoning_config)
+            else:
+                return _get_openai_response(message, history, model, api_key, system_prompt, files)
         elif provider == "anthropic":
-            return _get_claude_response(message, history, model, api_key, system_prompt, files)
+            # Route Anthropic through OpenRouter
+            from ..config import load_config
+            config = load_config()
+            openrouter_key = config.get('api_keys', {}).get('openrouter')
+            if openrouter_key:
+                return _get_openrouter_response(message, history, model, openrouter_key, system_prompt, files, openrouter_reasoning_config)
+            else:
+                return _get_claude_response(message, history, model, api_key, system_prompt, files)
+        elif provider == "openrouter":
+            return _get_openrouter_response(message, history, model, api_key, system_prompt, files, openrouter_reasoning_config)
         else:
             return {"response": None, "function_calls": None, "error": f"Unknown provider: {provider}"}
     
@@ -215,7 +325,7 @@ def _get_gemini_response(message, history, model, api_key, system_prompt, files=
     # Add conversation history
     for msg in history:
         role = msg.get('role', 'user')
-        content = msg.get('content', '')
+        content = sanitize_content(msg.get('content', ''))
         conversation_context += f"{role.upper()}: {content}\n"
     
     # Handle multimodal content
@@ -326,7 +436,7 @@ def _get_claude_response(message, history, model, api_key, system_prompt, files=
         role = msg.get("role", "user")
         if role not in ['user', 'assistant']:
             role = 'user'
-        messages.append({"role": role, "content": msg.get("content", "")})
+        messages.append({"role": role, "content": sanitize_content(msg.get("content", ""))})
     
     # Handle multimodal content if files are provided
     if files and len(files) > 0:
@@ -384,4 +494,134 @@ def _get_claude_response(message, history, model, api_key, system_prompt, files=
         "response": response.content[0].text,
         "function_calls": None,
         "error": None
+    }
+
+
+def _get_openrouter_response(message, history, model, api_key, system_prompt, files=None, openrouter_reasoning_config=None):
+    """Handle OpenRouter response with reasoning support.
+    
+    Uses OpenAI-compatible API with base_url pointed to OpenRouter.
+    Supports 'thinking' mode via extra_body reasoning parameter.
+    Preserves reasoning_details across turns.
+    """
+    # Check if this is a thinking model variant
+    is_thinking_model_suffix = model.endswith("-thinking")
+    actual_model = model.replace("-thinking", "") if is_thinking_model_suffix else model
+    
+    # Map model name to OpenRouter format using OPENROUTER_MODEL_MAP
+    if "/" in actual_model:
+        openrouter_model = actual_model
+    elif actual_model in OPENROUTER_MODEL_MAP:
+        openrouter_model = OPENROUTER_MODEL_MAP[actual_model]
+    else:
+        # Default: assume google/ prefix for unknown models
+        openrouter_model = f"google/{actual_model}"
+    
+    # Check if model supports thinking/reasoning
+    is_thinking_model = openrouter_model in THINKING_MODELS or actual_model in THINKING_MODELS
+    
+    client = OpenAI(
+        base_url="https://openrouter.ai/api/v1",
+        api_key=api_key
+    )
+    
+    # Build messages, preserving reasoning_details from history
+    messages = [{"role": "system", "content": system_prompt}]
+    for msg in history:
+        entry = {"role": msg["role"], "content": sanitize_content(msg.get("content", ""))}
+        if msg["role"] == "assistant" and "reasoning_details" in msg:
+            entry["reasoning_details"] = msg["reasoning_details"]
+        messages.append(entry)
+    
+    # Handle multimodal content for the new user message
+    if files and len(files) > 0:
+        content = []
+        if message:
+            content.append({"type": "text", "text": message})
+        
+        for file in files:
+            if file['type'].startswith('image/'):
+                content.append({
+                    "type": "image_url",
+                    "image_url": {"url": f"data:{file['type']};base64,{file['data']}"}
+                })
+            elif file['type'].startswith('audio/'):
+                # OpenRouter audio support (Gemini models)
+                # Map MIME type to format: audio/wav -> wav, audio/mp3 -> mp3
+                audio_format = file['type'].split('/')[-1]
+                if audio_format == 'mpeg':
+                    audio_format = 'mp3'
+                content.append({
+                    "type": "input_audio",
+                    "input_audio": {
+                        "data": file['data'],
+                        "format": audio_format
+                    }
+                })
+            elif file['type'].startswith('video/'):
+                # OpenRouter video support (Gemini models)
+                content.append({
+                    "type": "video_url",
+                    "video_url": {"url": f"data:{file['type']};base64,{file['data']}"}
+                })
+            elif file['type'] == 'application/pdf':
+                # OpenRouter native PDF support - works on any model
+                content.append({
+                    "type": "file",
+                    "file": {
+                        "filename": file.get('name', 'document.pdf'),
+                        "file_data": f"data:application/pdf;base64,{file['data']}"
+                    }
+                })
+            elif file['type'] in ['text/plain', 'text/markdown']:
+                import base64
+                text_content = base64.b64decode(file['data']).decode('utf-8')
+                content.append({"type": "text", "text": f"File: {file['name']}\n```\n{text_content}\n```"})
+        
+        messages.append({"role": "user", "content": content})
+    else:
+        messages.append({"role": "user", "content": message})
+    
+    # Build request kwargs
+    request_kwargs = {
+        "model": openrouter_model,
+        "messages": messages
+    }
+    
+    # Add PDF parsing plugin (use free pdf-text engine)
+    has_pdf = files and any(f['type'] == 'application/pdf' for f in files)
+    if has_pdf:
+        request_kwargs["extra_body"] = request_kwargs.get("extra_body", {})
+        request_kwargs["extra_body"]["plugins"] = [
+            {
+                "id": "file-parser",
+                "pdf": {
+                    "engine": "pdf-text"  # Free engine for text-based PDFs
+                }
+            }
+        ]
+    
+    # Add reasoning for thinking models, prioritizing openrouter_reasoning_config
+    if openrouter_reasoning_config:
+        request_kwargs["extra_body"] = request_kwargs.get("extra_body", {})
+        request_kwargs["extra_body"]["reasoning"] = openrouter_reasoning_config
+    elif is_thinking_model:
+        request_kwargs["extra_body"] = request_kwargs.get("extra_body", {})
+        request_kwargs["extra_body"]["reasoning"] = {"enabled": True}
+    
+    # Create completion
+    response = client.chat.completions.create(**request_kwargs)
+    message_obj = response.choices[0].message
+    
+    # Extract reasoning_details if present
+    reasoning_details = None
+    if (openrouter_reasoning_config and openrouter_reasoning_config.get("enabled", True) and not openrouter_reasoning_config.get("exclude", False)) or (is_thinking_model and not (openrouter_reasoning_config and openrouter_reasoning_config.get("exclude", False))):
+        if hasattr(message_obj, 'reasoning_details') and message_obj.reasoning_details:
+            reasoning_details = message_obj.reasoning_details
+        
+    return {
+        "response": message_obj.content or "",
+        "function_calls": None,
+        "error": None,
+        "reasoning_details": reasoning_details
     }

@@ -45,9 +45,18 @@ def select_model(config):
         p_safe = safe_str(provider).upper()
         print(f"  {p_safe}:")
         for model in models:
-            m_safe = safe_str(model)
-            print(f"    {idx}. {m_safe}")
-            all_models.append((provider, model))
+            # Handle both string and object format {id, thinking}
+            if isinstance(model, dict):
+                model_id = model.get("id", "")
+                thinking = model.get("thinking", False)
+                m_safe = safe_str(model_id)
+                thinking_str = " thinking: True" if thinking else ""
+                print(f"    {idx}. id: {m_safe}{thinking_str}")
+                all_models.append((provider, model_id))
+            else:
+                m_safe = safe_str(model)
+                print(f"    {idx}. {m_safe}")
+                all_models.append((provider, model))
             idx += 1
     
     def_p = safe_str(config['default_provider'])

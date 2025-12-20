@@ -7,7 +7,7 @@ import threading
 import time
 import os
 import json
-import google.generativeai as genai
+from openai import OpenAI
 from pathlib import Path
 from kortex.config import load_config
 
@@ -61,14 +61,16 @@ class TitleFixerService:
             
             # Load config
             config = load_config()
-            api_key = config['api_keys'].get('google')
+            api_key = config['api_keys'].get('openrouter')
             
             if not api_key:
-                print("⚠️ No Google API key found, skipping title fix")
+                print("⚠️ No OpenRouter API key found, skipping title fix")
                 return
             
-            genai.configure(api_key=api_key)
-            title_model = genai.GenerativeModel('gemini-2.5-flash-lite')
+            or_client = OpenAI(
+                base_url="https://openrouter.ai/api/v1",
+                api_key=api_key
+            )
             
             # Find all conversation files
             conv_dir = Path(__file__).parent.parent / 'data' / 'conversations'
@@ -115,10 +117,14 @@ User message: {user_msg[:500]}
 
 Respond with ONLY the title in Finnish, no quotes or extra text. Be specific and descriptive."""
                     
-                    title_response = title_model.generate_content(title_prompt)
+                    title_response = or_client.chat.completions.create(
+                        model="google/gemini-2.5-flash-lite",
+                        messages=[{"role": "user", "content": title_prompt}],
+                        max_tokens=50
+                    )
                     
-                    if hasattr(title_response, 'text') and title_response.text:
-                        new_title = title_response.text.strip()[:50]
+                    if title_response.choices[0].message.content:
+                        new_title = title_response.choices[0].message.content.strip()[:50]
                         
                         # Update title
                         conv_data['title'] = new_title

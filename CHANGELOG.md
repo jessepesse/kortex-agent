@@ -5,6 +5,68 @@ All notable changes to Kortex Agent will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0-alpha5] - 2025-12-20
+
+### Added
+
+#### Web Search with Scout Intelligence
+- **Web Search Pipeline** — New 3-stage architecture for intelligent web searches:
+  1. **Scout** (Gemini 2.5 Flash-Lite) — Analyzes query, decides if search needed
+  2. **Specialist** (Grok or Perplexity) — Performs the actual web search
+  3. **Synthesizer** (User's model) — Generates final response using search data
+- **Scout Decisions**:
+  - `NO_SEARCH` (0-60%) — No web data needed, respond directly
+  - `SUGGEST_SEARCH` (61-99%) — Show card, user chooses search model
+  - `FORCE_SEARCH` (100%) — Auto-search for live data (prices, weather, scores)
+- **Two Search Specialists**:
+  - **Grok 4.1-fast** (NEWS) — Native X/Twitter + web search, fast and cheap
+  - **Perplexity Sonar Pro** (RESEARCH) — Deep research with reasoning and authoritative sources
+- **Scout Card UI** — Interactive card for `SUGGEST_SEARCH` decisions
+  - Shows recommendation with confidence %
+  - User can choose: Grok, Perplexity, or Skip
+- **Scout Debug Badge** — Shows recommendation vs used model for FORCE searches
+- **Quiet Mode** — `NO_SEARCH` and `FORCE_SEARCH` operate silently
+- **Budget Protection** — FORCE always uses cheaper Grok regardless of recommendation
+- **Manual Toggle** — 🌐 button enables web search, Scout analyzes before sending
+- **Source Citations** — Search results include URLs in standardized format
+
+#### New AI Models & Providers
+- **X-AI Provider** — New provider with Grok models:
+  - **Grok 4** — Full model with native X/web search
+  - **Grok 4.1-fast** — Fast variant for quick searches
+- **DeepSeek Provider** — New provider:
+  - **DeepSeek v3.2 Speciale** — DeepSeek's latest model
+- **Claude Opus 4.5** — Added to Anthropic models with thinking support
+- **GPT-5.2** — Added to OpenAI models
+- **Gemini 3 Flash Preview** — Added to Google models
+
+#### Thinking/Reasoning Toggle
+- **Thinking Toggle Button** (🧠) — New UI button to enable extended reasoning
+- **Reasoning via OpenRouter** — Uses `extra_body={"reasoning": {"enabled": True}}`
+- **30+ Models Supported** — Thinking available for:
+  - Google: Gemini 3/2.5 Pro/Flash
+  - OpenAI: GPT-5, 5.1, 5.2
+  - Anthropic: Claude Opus 4.5, Haiku 4.5
+  - X-AI: Grok 4, Grok 4.1-fast
+  - DeepSeek: v3.2 Speciale
+
+### Changed
+
+#### Full OpenRouter Migration
+- **All Providers via OpenRouter** — Gemini, OpenAI, Anthropic, X-AI, DeepSeek all route through OpenRouter API
+- **Unified API Pattern** — Single `AsyncOpenAI` client with `base_url="https://openrouter.ai/api/v1"`
+- **Fallback Support** — Direct provider APIs used only when OpenRouter key missing
+- **Council.py Rewrite** — All 3 members, peer reviews, and chairman now via OpenRouter
+- **Mega.py Rewrite** — Elite voting, refinement, mega chairman all via OpenRouter
+- **Hive.py Update** — Chairman synthesis now via OpenRouter
+- **Scribe.py Rewrite** — Background analyzer with OpenAI-style function calling via OpenRouter
+
+#### Council Updates
+- **Council Chairman upgraded** — GPT-5 → GPT-5.2 for better synthesis
+- **GPT-5.2 as chairman option** — Available in settings dropdown
+
+---
+
 ## [1.0.0-alpha4] - 2025-12-08
 
 ### Fixed

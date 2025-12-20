@@ -1,31 +1,27 @@
-import google.generativeai as genai
+from openai import OpenAI
 import os
 import json
 import asyncio
 import logging
 
-from kortex.tools import TOOL_FUNCTIONS, GEMINI_TOOL_DEFINITIONS
-from google.generativeai.types import generation_types
+from kortex.tools import TOOL_FUNCTIONS, TOOL_DEFINITIONS
 
 logger = logging.getLogger(__name__)
 
 class ScribeService:
     def __init__(self):
-        self.api_key = os.getenv("GOOGLE_API_KEY")
+        self.api_key = os.getenv("OPENROUTER_API_KEY")
         if not self.api_key:
-            logger.warning("ScribeService: No Google API Key found. Scribe disabled.")
+            logger.warning("ScribeService: No OpenRouter API Key found. Scribe disabled.")
             return
         
-        genai.configure(api_key=self.api_key)
-        
-        # Define tools for the Scribe using Gemini-native format
-        self.tools = GEMINI_TOOL_DEFINITIONS
-        
-        # Initialize Gemini 2.5 Flash Lite model
-        self.model = genai.GenerativeModel(
-            model_name="gemini-2.5-flash-lite",
-            tools=self.tools
+        self.client = OpenAI(
+            base_url="https://openrouter.ai/api/v1",
+            api_key=self.api_key
         )
+        
+        # Use OpenAI-style tool definitions
+        self.tools = TOOL_DEFINITIONS
 
     def _build_system_prompt(self, context):
         """Build a system prompt with FULL context data."""
@@ -70,65 +66,60 @@ Examples:
         try:
             system_prompt = self._build_system_prompt(context)
             
-            # Build full prompt with history
-            full_prompt = f"{system_prompt}\n\nCONVERSATION TO ANALYZE:\n"
+            # Build messages for OpenAI API
+            messages = [{"role": "system", "content": system_prompt}]
             
             # Add conversation history if available
             if history:
                 for msg in history[-10:]:  # Last 10 messages for context
                     role = msg.get("role", "user")
                     content = msg.get("content", "")
-                    full_prompt += f"{role.upper()}: {content}\n"
+                    # Sanitize content if it's a dict
+                    if isinstance(content, dict):
+                        content = content.get('response', str(content))
+                    messages.append({"role": role, "content": content})
             
-            # Add current exchange
-            full_prompt += f"USER: {message}\n"
-            full_prompt += f"ASSISTANT: {ai_response}\n"
-            
-            # Final instruction
-            full_prompt += "\nBased on the conversation above, update any data files if new facts were established or changed. Call the appropriate tools."
+            # Add current exchange as final user message
+            final_prompt = f"""USER: {message}
+ASSISTANT: {ai_response}
+
+Based on the conversation above, update any data files if new facts were established or changed. Call the appropriate tools. If no updates needed, just respond with "No updates"."""
+            messages.append({"role": "user", "content": final_prompt})
             
             # Run in executor to avoid blocking
             loop = asyncio.get_event_loop()
             
-            # Use chat session WITH automatic function calling to allow proper function calls
-            chat = self.model.start_chat(enable_automatic_function_calling=True)
-            try:
-                response = await loop.run_in_executor(
-                    None, lambda: chat.send_message(full_prompt)
+            def make_request():
+                return self.client.chat.completions.create(
+                    model="google/gemini-2.5-flash-lite",
+                    messages=messages,
+                    tools=self.tools,
+                    tool_choice="auto"
                 )
-            except generation_types.StopCandidateException as e:
-                # Handle malformed function call gracefully
-                logger.error(f"Scribe malformed function call: {e}")
-                return []
             
-            # Check if there were function calls
+            response = await loop.run_in_executor(None, make_request)
+            
+            # Check if there were tool calls
             updates = []
-            if hasattr(response, 'candidates') and response.candidates:
-                for part in response.candidates[0].content.parts:
-                    if hasattr(part, 'function_call') and part.function_call:
-                        fc = part.function_call
-                        
-                        # Convert MapComposite to dict (same approach as handler.py)
-                        def convert_to_dict(obj):
-                            if isinstance(obj, (str, int, float, bool, type(None))):
-                                return obj
-                            if hasattr(obj, 'items'):
-                                return {k: convert_to_dict(v) for k, v in obj.items()}
-                            if hasattr(obj, '__iter__'):
-                                return [convert_to_dict(item) for item in obj]
-                            return obj
-                        
-                        args = convert_to_dict(dict(fc.args))
-                        
-                        # Execute the function
-                        from kortex.tools import TOOL_FUNCTIONS
-                        if fc.name in TOOL_FUNCTIONS:
-                            try:
-                                result = TOOL_FUNCTIONS[fc.name](**args)
-                                updates.append(f"✓ {fc.name}: {result}")
-                                logger.info(f"Scribe executed: {fc.name}")
-                            except Exception as e:
-                                logger.error(f"Scribe failed to execute {fc.name}: {e}")
+            choice = response.choices[0]
+            
+            if choice.message.tool_calls:
+                for tool_call in choice.message.tool_calls:
+                    func_name = tool_call.function.name
+                    try:
+                        args = json.loads(tool_call.function.arguments)
+                    except json.JSONDecodeError:
+                        logger.error(f"Scribe failed to parse args for {func_name}")
+                        continue
+                    
+                    # Execute the function
+                    if func_name in TOOL_FUNCTIONS:
+                        try:
+                            result = TOOL_FUNCTIONS[func_name](**args)
+                            updates.append(f"✓ {func_name}: {result}")
+                            logger.info(f"Scribe executed: {func_name}")
+                        except Exception as e:
+                            logger.error(f"Scribe failed to execute {func_name}: {e}")
             
             if updates:
                 logger.info(f"Scribe completed {len(updates)} updates")

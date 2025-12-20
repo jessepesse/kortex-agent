@@ -4,9 +4,7 @@ Mega Council - Ultimate decision system combining Elite and Hive
 
 import asyncio
 import json
-import google.generativeai as genai
 from openai import AsyncOpenAI
-from anthropic import AsyncAnthropic
 
 from .council import CouncilService
 from .hive import HiveService
@@ -56,22 +54,27 @@ class MegaCouncilService:
         
         responses = elite_full.get('council_responses', [])
         if not responses:
-            return {"winner": "No Elite responses", "votes": {}}
+            return {"winner_model": "No Elite responses", "winner_response": "", "votes": {}, "all_responses": []}
         
         # Peer review voting
         print("🏛️ Elite: Peer review voting...")
         votes = await self._elite_voting(responses, message)
         
-        # Find winner
-        winner_model = max(votes, key=votes.get)
-        winner_response = next((r for r in responses if r['model'] == winner_model), None)
+        # Find winner - handle empty votes dict
+        if not votes:
+            # All responses failed, pick first one as fallback
+            winner_model = responses[0]['model'] if responses else "Unknown"
+            winner_response = next((r for r in responses if r['model'] == winner_model), None)
+        else:
+            winner_model = max(votes, key=votes.get)
+            winner_response = next((r for r in responses if r['model'] == winner_model), None)
         
         # Winner refines answer
         if winner_response:
             refined = await self._refine_answer(winner_model, winner_response['response'], message, context, "elite")
             winner_response['response'] = refined
         
-        print(f"🏆 Elite Winner: {winner_model} ({votes[winner_model]} votes)")
+        print(f"🏆 Elite Winner: {winner_model} ({votes.get(winner_model, 0)} votes)")
         
         return {
             "winner_model": winner_model,
@@ -89,22 +92,27 @@ class MegaCouncilService:
         
         responses = hive_full.get('council_responses', [])
         if not responses:
-            return {"winner": "No Hive responses", "votes": {}}
+            return {"winner_model": "No Hive responses", "winner_response": "", "votes": {}, "all_responses": []}
         
         # Persona voting
         print("🐝 Hive: Persona voting...")
         votes = await self._hive_voting(responses, message)
         
-        # Find winner
-        winner_persona = max(votes, key=votes.get)
-        winner_response = next((r for r in responses if r['model'] == winner_persona), None)
+        # Find winner - handle empty votes dict
+        if not votes:
+            # All responses failed, pick first one as fallback
+            winner_persona = responses[0]['model'] if responses else "Unknown"
+            winner_response = next((r for r in responses if r['model'] == winner_persona), None)
+        else:
+            winner_persona = max(votes, key=votes.get)
+            winner_response = next((r for r in responses if r['model'] == winner_persona), None)
         
         # Winner refines answer
         if winner_response:
             refined = await self._refine_answer(winner_persona, winner_response['response'], message, context, "hive")
             winner_response['response'] = refined
         
-        print(f"🏆 Hive Winner: {winner_persona} ({votes[winner_persona]} votes)")
+        print(f"🏆 Hive Winner: {winner_persona} ({votes.get(winner_persona, 0)} votes)")
         
         return {
             "winner_model": winner_persona,
@@ -170,7 +178,7 @@ class MegaCouncilService:
         return votes
     
     async def _get_elite_vote(self, model_name, anonymized_responses, question):
-        """Get vote from an Elite model"""
+        """Get vote from an Elite model via OpenRouter"""
         try:
             prompt = f"""You are voting for the best response to this question:
 "{question}"
@@ -186,42 +194,33 @@ Vote for the BEST response by returning ONLY the letter (A, B, or C). Consider:
 
 Your vote (single letter only):"""
             
-            # Use hardcoded API model names (like council.py does)
-            if 'GPT' in model_name or 'gpt' in model_name:
-                client = AsyncOpenAI(api_key=self.config['api_keys']['openai'])
-                response = await client.chat.completions.create(
-                    model="gpt-5",
-                    messages=[{"role": "user", "content": prompt}],
-                    max_completion_tokens=10
-                )
-                vote = response.choices[0].message.content.strip()[:1]
-            elif 'Claude' in model_name or 'claude' in model_name:
-                client = AsyncAnthropic(api_key=self.config['api_keys']['anthropic'])
-                # Filter empty messages from history
-                messages = [{"role": "user", "content": prompt}]
-                response = await client.messages.create(
-                    model="claude-haiku-4-5",
-                    max_tokens=10,
-                    messages=messages
-                )
-                vote = response.content[0].text.strip()[:1]
-            else:  # Gemini
-                try:
-                    genai.configure(api_key=self.config['api_keys']['google'])
-                    model = genai.GenerativeModel("gemini-3-pro-preview")
-                    loop = asyncio.get_event_loop()
-                    response = await loop.run_in_executor(None, lambda: model.generate_content(prompt))
-                    
-                    # Validate response
-                    if not response or not hasattr(response, 'text') or not response.text:
-                        print(f"⚠️ Gemini returned empty response for {model_name}, using fallback")
-                        return "A"  # Fallback vote
-                    
-                    vote = response.text.strip()[:1]
-                except Exception as gemini_error:
-                    print(f"⚠️ Gemini vote error for {model_name}: {gemini_error}, using fallback")
-                    return "A"  # Fallback vote
+            # All models via OpenRouter
+            client = AsyncOpenAI(
+                api_key=self.config['api_keys']['openrouter'],
+                base_url="https://openrouter.ai/api/v1"
+            )
             
+            if 'GPT' in model_name or 'gpt' in model_name:
+                response = await client.chat.completions.create(
+                    model="openai/gpt-5.2",
+                    messages=[{"role": "user", "content": prompt}],
+                    max_completion_tokens=10,
+                    extra_body={"reasoning": {"enabled": True}}
+                )
+            elif 'Claude' in model_name or 'claude' in model_name:
+                response = await client.chat.completions.create(
+                    model="anthropic/claude-haiku-4-5",
+                    messages=[{"role": "user", "content": prompt}],
+                    max_tokens=10
+                )
+            else:  # Gemini
+                response = await client.chat.completions.create(
+                    model="google/gemini-3-pro-preview",
+                    messages=[{"role": "user", "content": prompt}],
+                    max_tokens=10
+                )
+            
+            vote = response.choices[0].message.content.strip()[:1]
             return vote
         except Exception as e:
             print(f"❌ Elite vote failed for {model_name}: {e}")
@@ -269,44 +268,34 @@ You may now REFINE and EXPAND your answer with additional insights. Keep it conc
 
 Refined response:"""
             
+            # All models via OpenRouter
+            client = AsyncOpenAI(
+                api_key=self.config['api_keys']['openrouter'],
+                base_url="https://openrouter.ai/api/v1"
+            )
+            
             if council_type == "elite":
                 if 'GPT' in model_name or 'gpt' in model_name:
-                    client = AsyncOpenAI(api_key=self.config['api_keys']['openai'])
                     response = await client.chat.completions.create(
-                        model="gpt-5",
+                        model="openai/gpt-5.2",
                         messages=[{"role": "user", "content": prompt}],
-                        max_completion_tokens=500
+                        max_completion_tokens=500,
+                        extra_body={"reasoning": {"enabled": True}}
                     )
-                    return response.choices[0].message.content
                 elif 'Claude' in model_name or 'claude' in model_name:
-                    client = AsyncAnthropic(api_key=self.config['api_keys']['anthropic'])
-                    response = await client.messages.create(
-                        model="claude-haiku-4-5",
-                        max_tokens=500,
-                        messages=[{"role": "user", "content": prompt}]
+                    response = await client.chat.completions.create(
+                        model="anthropic/claude-haiku-4-5",
+                        messages=[{"role": "user", "content": prompt}],
+                        max_tokens=500
                     )
-                    return response.content[0].text
                 else:  # Gemini
-                    try:
-                        genai.configure(api_key=self.config['api_keys']['google'])
-                        model = genai.GenerativeModel("gemini-3-pro-preview")
-                        loop = asyncio.get_event_loop()
-                        response = await loop.run_in_executor(None, lambda: model.generate_content(prompt))
-                        
-                        # Validate response
-                        if not response or not hasattr(response, 'text') or not response.text:
-                            print(f"⚠️ Gemini refinement returned empty, using original")
-                            return original_response
-                        
-                        return response.text
-                    except Exception as gemini_error:
-                        print(f"⚠️ Gemini refinement error: {gemini_error}, using original")
-                        return original_response
+                    response = await client.chat.completions.create(
+                        model="google/gemini-3-pro-preview",
+                        messages=[{"role": "user", "content": prompt}],
+                        max_tokens=500
+                    )
+                return response.choices[0].message.content
             else:  # hive
-                client = AsyncOpenAI(
-                    base_url="https://openrouter.ai/api/v1",
-                    api_key=self.config['api_keys']['openrouter']
-                )
                 response = await client.chat.completions.create(
                     model="deepseek/deepseek-v3.2-speciale",
                     messages=[{"role": "user", "content": prompt}],
@@ -348,37 +337,28 @@ You are Jesse's ultimate strategic partner. Provide the definitive answer.
 Format in Markdown."""
         
         try:
-            # Use configured chairman model
+            # All chairman models via OpenRouter
+            client = AsyncOpenAI(
+                base_url="https://openrouter.ai/api/v1",
+                api_key=self.config['api_keys']['openrouter']
+            )
+            
+            # Map model name to OpenRouter format
             if 'gpt' in mega_chairman_model.lower():
-                client = AsyncOpenAI(api_key=self.config['api_keys']['openai'])
-                response = await client.chat.completions.create(
-                    model=mega_chairman_model,
-                    messages=[{"role": "user", "content": prompt}]
-                )
-                return response.choices[0].message.content
+                or_model = f"openai/{mega_chairman_model}"
             elif 'claude' in mega_chairman_model.lower():
-                client = AsyncAnthropic(api_key=self.config['api_keys']['anthropic'])
-                response = await client.messages.create(
-                    model=mega_chairman_model,
-                    max_tokens=2000,
-                    messages=[{"role": "user", "content": prompt}]
-                )
-                return response.content[0].text
+                or_model = f"anthropic/{mega_chairman_model}"
             elif 'grok' in mega_chairman_model.lower():
-                client = AsyncOpenAI(
-                    base_url="https://openrouter.ai/api/v1",
-                    api_key=self.config['api_keys']['openrouter']
-                )
-                response = await client.chat.completions.create(
-                    model=mega_chairman_model,
-                    messages=[{"role": "user", "content": prompt}]
-                )
-                return response.choices[0].message.content
-            else:  # Gemini (default)
-                genai.configure(api_key=self.config['api_keys']['google'])
-                model = genai.GenerativeModel(mega_chairman_model)
-                loop = asyncio.get_event_loop()
-                response = await loop.run_in_executor(None, lambda: model.generate_content(prompt))
-                return response.text
+                or_model = f"x-ai/{mega_chairman_model}"
+            elif 'gemini' in mega_chairman_model.lower():
+                or_model = f"google/{mega_chairman_model}"
+            else:
+                or_model = mega_chairman_model  # Assume already in correct format
+            
+            response = await client.chat.completions.create(
+                model=or_model,
+                messages=[{"role": "user", "content": prompt}]
+            )
+            return response.choices[0].message.content
         except Exception as e:
             return f"**Mega Chairman Error:** {str(e)}"
