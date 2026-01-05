@@ -2,7 +2,7 @@
 # Versions pinned for reproducible builds
 
 # HTTP & Async
-aiohttp==3.13.2
+aiohttp==3.13.3
 
 # AI Providers
 anthropic==0.75.0
