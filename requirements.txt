@@ -7,7 +7,7 @@ aiohttp==3.13.3
 # AI Providers
 anthropic==0.75.0
 google-genai>=1.0.0
-openai==2.21.0
+openai==2.24.0
 
 # Web Framework
 Flask==3.1.3
