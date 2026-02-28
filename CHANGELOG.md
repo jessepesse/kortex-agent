@@ -5,6 +5,39 @@ All notable changes to Kortex Agent will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0-alpha6] - 2026-02-28
+
+### Changed
+
+#### SDK Migration
+- **Google GenAI SDK** — Migrated from deprecated `google-generativeai` to new `google-genai` SDK
+  - New `Client()` + `client.models.generate_content()` pattern
+  - Uses `system_instruction` config instead of prompt prepending
+  - Removed `convert_to_dict()` helpers (new SDK uses native dicts)
+  - **Breaking:** API key env var is now `GEMINI_API_KEY` (was `GOOGLE_API_KEY`)
+
+#### Model Updates
+- **Google:** `gemini-2.5-pro` → `gemini-3.1-pro-preview`
+- **Anthropic:** Added `claude-opus-4.6` and `claude-sonnet-4.6`
+- **Anthropic:** Removed `claude-haiku-3.5`, `claude-haiku-3`, `claude-3-5-sonnet-20241022`
+
+#### Dependencies Updated
+- **Python:**
+  - `openai` 2.11.0 → 2.21.0
+  - `google-generativeai` 0.8.6 → `google-genai` ≥1.0.0
+  - `bandit` 1.9.2 → 1.9.3
+  - `aiohttp` 3.13.2 → 3.13.3
+  - `pypdf` 6.4.2 → 6.7.3
+  - `Flask` 3.1.2 → 3.1.3
+- **Transitive deps pinned:** `werkzeug` ≥3.1.6, `protobuf` ≥5.29.6, `pyasn1` ≥0.6.2, `urllib3` ≥2.6.3
+- **Frontend:** `axios` ^1.13.5, `react-dom` ^19.2.4, `vite` ^7.3.1, `globals` ^17.3.0, `eslint-plugin-react-refresh` ^0.5.0
+- **GitHub Actions:** `actions/checkout` v4 → v6, `github/codeql-action` v3 → v4
+
+### Fixed
+- **28 Dependabot Security Alerts** — All resolved via direct and transitive dependency updates
+
+---
+
 ## [1.0.0-alpha5-hotfix] - 2025-12-20
 
 ### Changed

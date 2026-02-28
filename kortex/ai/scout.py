@@ -119,31 +119,48 @@ Respond ONLY with valid JSON, no markdown or extra text."""
                 temperature=0.1  # Low temp for consistent classification
             )
             
-            result_text = response.choices[0].message.content.strip()
+            result_text = response.choices[0].message.content
+            
+            # Handle None or empty response
+            if not result_text:
+                print("❌ Scout received empty response from LLM")
+                return self._default_response("Empty LLM response")
+            
+            result_text = result_text.strip()
+            print(f"🔍 Scout raw response: {result_text[:200]}...")
             
             # Parse JSON response
             # Handle potential markdown code blocks
             if result_text.startswith("```"):
-                result_text = result_text.split("```")[1]
-                if result_text.startswith("json"):
-                    result_text = result_text[4:]
-            result_text = result_text.strip()
+                parts = result_text.split("```")
+                if len(parts) >= 2:
+                    result_text = parts[1]
+                    if result_text.startswith("json"):
+                        result_text = result_text[4:]
+                    result_text = result_text.strip()
+            
+            # Try to extract JSON if mixed with other text
+            if not result_text.startswith("{"):
+                import re
+                json_match = re.search(r'\{[^{}]*\}', result_text, re.DOTALL)
+                if json_match:
+                    result_text = json_match.group()
             
             result = json.loads(result_text)
             
-            # Validate and normalize
-            decision = result.get("decision", "NO_SEARCH").upper()
+            # Validate and normalize - handle None values explicitly
+            decision = (result.get("decision") or "NO_SEARCH").upper()
             if decision not in ["NO_SEARCH", "SUGGEST_SEARCH", "FORCE_SEARCH"]:
                 decision = "NO_SEARCH"
             
-            confidence = int(result.get("confidence", 50))
+            confidence = int(result.get("confidence") or 50)
             confidence = max(0, min(100, confidence))
             
-            search_type = result.get("search_type", "RESEARCH").upper()
+            search_type = (result.get("search_type") or "RESEARCH").upper()
             if search_type not in ["NEWS", "RESEARCH"]:
                 search_type = "RESEARCH"
             
-            reason = result.get("reason", "")
+            reason = result.get("reason") or ""
             
             # Determine recommended model based on search_type
             if search_type == "NEWS":

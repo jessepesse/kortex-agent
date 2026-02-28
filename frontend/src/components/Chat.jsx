@@ -247,12 +247,38 @@ const Chat = ({ messages, onSendMessage, isLoading, isSidebarOpen, contextData, 
                 setScoutLoading(true);
                 try {
                     const scout = await scoutAnalyze(message, messages);
-                    setScoutResult(scout);
-                    setPendingScoutMessage({ message, files: attachedFiles, reasoningConfig });
-                    setInput('');
-                    // Don't send yet - wait for user to choose from Scout card
-                    setScoutLoading(false);
-                    return;
+                    console.log('🕵️ Scout result:', scout);
+                    
+                    if (scout.decision === 'NO_SEARCH') {
+                        // No search needed - proceed with normal chat (no web search)
+                        setScoutLoading(false);
+                        onSendMessage(message, attachedFiles, reasoningConfig, false);
+                        setInput('');
+                        setWebSearchEnabled(false);
+                        attachedFiles.forEach(file => {
+                            if (file.preview) URL.revokeObjectURL(file.preview);
+                        });
+                        setAttachedFiles([]);
+                        return;
+                    } else if (scout.decision === 'FORCE_SEARCH') {
+                        // Auto-search with Grok (budget protection)
+                        setScoutLoading(false);
+                        onSendMessage(message, attachedFiles, reasoningConfig, true, 'grok');
+                        setInput('');
+                        setWebSearchEnabled(false);
+                        attachedFiles.forEach(file => {
+                            if (file.preview) URL.revokeObjectURL(file.preview);
+                        });
+                        setAttachedFiles([]);
+                        return;
+                    } else {
+                        // SUGGEST_SEARCH - show card for user decision
+                        setScoutResult(scout);
+                        setPendingScoutMessage({ message, files: attachedFiles, reasoningConfig });
+                        setInput('');
+                        setScoutLoading(false);
+                        return;
+                    }
                 } catch (error) {
                     console.error('Scout analysis failed:', error);
                     setScoutLoading(false);
@@ -390,15 +416,18 @@ const Chat = ({ messages, onSendMessage, isLoading, isSidebarOpen, contextData, 
             )}
 
             {/* Scout Card - shows when Scout has analyzed and is waiting for user decision */}
-            {scoutResult && pendingScoutMessage && (
-                <ScoutCard 
-                    scoutResult={scoutResult}
-                    onSearchWithGrok={handleScoutSearchWithGrok}
-                    onSearchWithPerplexity={handleScoutSearchWithPerplexity}
-                    onSkip={handleScoutSkip}
-                    onClose={clearScoutState}
-                />
-            )}
+            {scoutResult && pendingScoutMessage && (() => {
+                console.log('🎴 Rendering ScoutCard:', { scoutResult, pendingScoutMessage });
+                return (
+                    <ScoutCard 
+                        scoutResult={scoutResult}
+                        onSearchWithGrok={handleScoutSearchWithGrok}
+                        onSearchWithPerplexity={handleScoutSearchWithPerplexity}
+                        onSkip={handleScoutSkip}
+                        onClose={clearScoutState}
+                    />
+                );
+            })()}
 
             <form className="chat-input-form" onSubmit={handleSubmit}>
                 {attachedFiles.length > 0 && (
