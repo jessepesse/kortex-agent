@@ -2,7 +2,8 @@
 
 import json
 from datetime import datetime
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from openai import OpenAI
 
 from ..data import load_all_context
@@ -310,52 +311,52 @@ def _get_openai_response(message, history, model, api_key, system_prompt, files=
 
 
 def _get_gemini_response(message, history, model, api_key, system_prompt, files=None):
-    """Handle Gemini response with tools"""
-    genai.configure(api_key=api_key)
+    """Handle Gemini response with tools (google-genai SDK)"""
+    client = genai.Client(api_key=api_key)
     
-    # Create model WITH tools
-    gemini_model = genai.GenerativeModel(
-        model_name=model,
-        tools=GEMINI_TOOL_DEFINITIONS
-    )
-    
-    # Build full prompt with system instructions and history
-    conversation_context = f"{system_prompt}\n\n"
-    
-    # Add conversation history
+    # Build conversation history as text context
+    conversation_context = ""
     for msg in history:
         role = msg.get('role', 'user')
         content = sanitize_content(msg.get('content', ''))
         conversation_context += f"{role.upper()}: {content}\n"
     
-    # Handle multimodal content
-    parts = [conversation_context]
+    # Build contents list
+    contents = []
+    if conversation_context:
+        contents.append(conversation_context)
     
+    # Handle multimodal content
     if files:
         for file in files:
             if file['type'].startswith('image/') or file['type'].startswith('video/') or file['type'].startswith('audio/') or file['type'] == 'application/pdf':
                 # Inline media data for Gemini
-                parts.append({
-                    "mime_type": file['type'],
-                    "data": file['data']
-                })
+                contents.append(types.Part.from_bytes(
+                    data=__import__('base64').b64decode(file['data']),
+                    mime_type=file['type']
+                ))
             elif file['type'] == 'text/plain' or file['type'] == 'text/markdown':
-                # Decode text and append
                 import base64
                 text_content = base64.b64decode(file['data']).decode('utf-8')
-                parts.append(f"\nFile: {file['name']}\n```\n{text_content}\n```")
-            
-            parts.append("\n") # Separator
-            
-    parts.append(f"USER: {message}\nASSISTANT:")
+                contents.append(f"\nFile: {file['name']}\n```\n{text_content}\n```")
+    
+    contents.append(message)
     
     # Generate response
     try:
-        response = gemini_model.generate_content(parts)
+        response = client.models.generate_content(
+            model=model,
+            contents=contents,
+            config=types.GenerateContentConfig(
+                system_instruction=system_prompt,
+                tools=GEMINI_TOOL_DEFINITIONS,
+                automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
+            ),
+        )
     except Exception as e:
         return {"response": None, "function_calls": None, "error": str(e)}
     
-    # Extract function calls if any
+    # Extract function calls and text
     function_calls = []
     response_text = ""
     
@@ -363,27 +364,14 @@ def _get_gemini_response(message, history, model, api_key, system_prompt, files=
         if hasattr(response, 'candidates') and response.candidates:
             candidate = response.candidates[0]
             
-            # Check for text parts
             for part in candidate.content.parts:
                 if hasattr(part, 'text') and part.text:
                     response_text += part.text
                 
-                # Check for function calls
                 if hasattr(part, 'function_call') and part.function_call:
                     fc = part.function_call
-                    
-                    # Convert MapComposite to dict
-                    def convert_to_dict(obj):
-                        if isinstance(obj, (str, int, float, bool, type(None))):
-                            return obj
-                        if hasattr(obj, 'items'):
-                            return {k: convert_to_dict(v) for k, v in obj.items()}
-                        if hasattr(obj, '__iter__'):
-                            return [convert_to_dict(item) for item in obj]
-                        return obj
-                    
-                    args = convert_to_dict(dict(fc.args))
-                    
+                    # New SDK returns native dicts, no MapComposite conversion needed
+                    args = dict(fc.args) if fc.args else {}
                     function_calls.append({
                         "name": fc.name,
                         "args": args

@@ -6,7 +6,7 @@ Supports both OpenAI and Google Gemini with persistent API key storage.
 
 import os
 import json
-import google.generativeai as genai
+from google import genai
 from openai import OpenAI
 from pathlib import Path
 import sys

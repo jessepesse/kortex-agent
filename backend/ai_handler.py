@@ -5,7 +5,8 @@ Handles all AI interactions, function calling, and data management
 """
 
 import json
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from openai import OpenAI
 from pathlib import Path
 
@@ -295,15 +296,17 @@ def _get_openai_response(messages, model, api_key):
 
 
 def _get_gemini_response(message, model, api_key):
-    """Handle Gemini API call"""
-    genai.configure(api_key=api_key)
+    """Handle Gemini API call (google-genai SDK)"""
+    client = genai.Client(api_key=api_key)
     
-    gemini_model = genai.GenerativeModel(
-        model_name=model,
-        tools=list(TOOL_FUNCTIONS.values())
+    response = client.models.generate_content(
+        model=model,
+        contents=message,
+        config=types.GenerateContentConfig(
+            tools=list(TOOL_FUNCTIONS.values()),
+            automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
+        ),
     )
-    
-    response = gemini_model.generate_content(message)
     
     # Check for function calls FIRST
     has_function_calls = False
@@ -314,25 +317,12 @@ def _get_gemini_response(message, model, api_key):
                 break
     
     if has_function_calls:
-        # Extract function calls
         function_calls = []
         for part in response.candidates[0].content.parts:
             if hasattr(part, 'function_call') and part.function_call:
                 fc = part.function_call
-                
-                # Convert MapComposite to dict recursively
-                def convert_to_dict(obj):
-                    if isinstance(obj, dict):
-                        return {k: convert_to_dict(v) for k, v in obj.items()}
-                    elif isinstance(obj, list):
-                        return [convert_to_dict(item) for item in obj]
-                    elif hasattr(obj, '__dict__'):
-                        return convert_to_dict(dict(obj))
-                    else:
-                        return obj
-                
-                args = convert_to_dict(dict(fc.args))
-                
+                # New SDK returns native dicts
+                args = dict(fc.args) if fc.args else {}
                 function_calls.append({
                     "name": fc.name,
                     "args": args
