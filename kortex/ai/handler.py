@@ -333,15 +333,15 @@ def _get_gemini_response(message, history, model, api_key, system_prompt, files=
     
     # Handle multimodal content
     if files:
+        import base64
         for file in files:
             if file['type'].startswith('image/') or file['type'].startswith('video/') or file['type'].startswith('audio/') or file['type'] == 'application/pdf':
                 # Inline media data for Gemini
                 contents.append(types.Part.from_bytes(
-                    data=__import__('base64').b64decode(file['data']),
+                    data=base64.b64decode(file['data']),
                     mime_type=file['type']
                 ))
             elif file['type'] == 'text/plain' or file['type'] == 'text/markdown':
-                import base64
                 text_content = base64.b64decode(file['data']).decode('utf-8')
                 contents.append(f"\nFile: {file['name']}\n```\n{text_content}\n```")
     
