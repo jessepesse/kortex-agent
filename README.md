@@ -11,9 +11,9 @@ Built with a modern **React frontend** and a robust **Flask backend**, Kortex su
 ### 🤖 Multi-Provider & Multimodal AI
 - **Providers:** 5 providers via **OpenRouter** — **Google Gemini**, **OpenAI**, **Anthropic**, **X-AI**, and **DeepSeek**.
 - **Models:** 15+ models across 5 providers:
-  - **Google:** `gemini-2.5-flash`, `gemini-2.5-flash-lite`, `gemini-2.5-pro`, `gemini-3-flash-preview`
+  - **Google:** `gemini-2.5-flash`, `gemini-2.5-flash-lite`, `gemini-3.1-pro-preview`, `gemini-3-flash-preview`
   - **OpenAI:** `gpt-5-mini`, `gpt-5-nano`, `gpt-5`, `gpt-5.1`, `gpt-5.2`
-  - **Anthropic:** `claude-opus-4.5`, `claude-haiku-4.5`, `claude-haiku-3.5`
+  - **Anthropic:** `claude-opus-4.6`, `claude-opus-4.5`, `claude-sonnet-4.6`, `claude-haiku-4.5`
   - **X-AI:** `grok-4`, `grok-4.1-fast` (with native web search)
   - **DeepSeek:** `deepseek-v3.2-speciale`
 - **Multimodal:** Upload **images, videos, audio files, and PDFs**. The AI can analyze and discuss them with you.

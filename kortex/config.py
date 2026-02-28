@@ -40,16 +40,15 @@ def load_config() -> ConfigDict:
                 ],
                 "google": [
                     {"id": "gemini-3-pro-preview"},
-                    {"id": "gemini-2.5-pro"},
+                    {"id": "gemini-3.1-pro-preview"},
                     {"id": "gemini-2.5-flash"},
                     {"id": "gemini-2.5-flash-lite"}
                 ],
                 "anthropic": [
+                    {"id": "claude-opus-4-6"},
                     {"id": "claude-opus-4-5"},
-                    {"id": "claude-haiku-4-5"},
-                    {"id": "claude-haiku-3-5"},
-                    {"id": "claude-haiku-3"},
-                    {"id": "claude-3-5-sonnet-20241022"}
+                    {"id": "claude-sonnet-4-6"},
+                    {"id": "claude-haiku-4-5"}
                 ],
                 "openrouter": [
                     {"id": "gemini-3-flash-preview", "thinking": True}

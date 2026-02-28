@@ -112,7 +112,7 @@ OPENROUTER_MODEL_MAP = {
     # Google models
     "gemini-3-pro-preview": "google/gemini-3-pro-preview",
     "gemini-3-flash-preview": "google/gemini-3-flash-preview",
-    "gemini-2.5-pro": "google/gemini-2.5-pro",
+    "gemini-3.1-pro-preview": "google/gemini-3.1-pro-preview",
     "gemini-2.5-flash": "google/gemini-2.5-flash",
     "gemini-2.5-flash-lite": "google/gemini-2.5-flash-lite",
     # OpenAI models
@@ -122,11 +122,10 @@ OPENROUTER_MODEL_MAP = {
     "gpt-5.1": "openai/gpt-5.1",
     "gpt-5.2": "openai/gpt-5.2",
     # Anthropic models
+    "claude-opus-4-6": "anthropic/claude-opus-4-6",
     "claude-opus-4-5": "anthropic/claude-opus-4-5",
+    "claude-sonnet-4-6": "anthropic/claude-sonnet-4-6",
     "claude-haiku-4-5": "anthropic/claude-haiku-4-5",
-    "claude-haiku-3-5": "anthropic/claude-3-5-haiku",
-    "claude-haiku-3": "anthropic/claude-3-haiku",
-    "claude-3-5-sonnet-20241022": "anthropic/claude-3.5-sonnet",
     # X-AI (Grok) models
     "grok-4": "x-ai/grok-4",
     "grok-4.1-fast": "x-ai/grok-4.1-fast",
@@ -140,10 +139,12 @@ THINKING_MODELS = {
     # Google
     "google/gemini-3-pro-preview",
     "google/gemini-3-flash-preview",
+    "google/gemini-3.1-pro-preview",
     "google/gemini-2.5-pro",
     "google/gemini-2.5-flash",
     "gemini-3-pro-preview",
     "gemini-3-flash-preview",
+    "gemini-3.1-pro-preview",
     "gemini-2.5-pro",
     "gemini-2.5-flash",
     "gemini-2.5-flash-lite",
@@ -155,9 +156,13 @@ THINKING_MODELS = {
     "gpt-5.1",
     "gpt-5",
     # Anthropic
+    "anthropic/claude-opus-4-6",
     "anthropic/claude-opus-4-5",
+    "anthropic/claude-sonnet-4-6",
     "anthropic/claude-haiku-4-5",
+    "claude-opus-4-6",
     "claude-opus-4-5",
+    "claude-sonnet-4-6",
     "claude-haiku-4-5",
     # X-AI (Grok)
     "x-ai/grok-4",
