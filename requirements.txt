@@ -6,8 +6,8 @@ aiohttp==3.13.3
 
 # AI Providers
 anthropic==0.75.0
-google-generativeai==0.8.5
-openai==2.11.0
+google-generativeai==0.8.6
+openai==2.21.0
 
 # Web Framework
 Flask==3.1.3
@@ -23,7 +23,7 @@ python-dotenv==1.2.1
 pytest==9.0.2
 pytest-asyncio==1.3.0
 pytest-cov==7.0.0
-bandit==1.9.2
+bandit==1.9.3
 
 # Transitive dependency security constraints
 werkzeug>=3.1.6
