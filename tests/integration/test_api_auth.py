@@ -61,7 +61,8 @@ class TestApiAuthGuard:
         )
         assert response.status_code == 200
         payload = response.get_json()
-        assert "providers" in payload
+        assert payload["success"] is True
+        assert "providers" in payload["data"]
 
     def test_missing_token_config_returns_503(self, auth_client_missing_token):
         response = auth_client_missing_token.get("/api/config")
@@ -69,4 +70,3 @@ class TestApiAuthGuard:
         payload = response.get_json()
         assert payload["error"] is True
         assert "KORTEX_API_TOKEN" in payload["message"]
-

@@ -2,7 +2,7 @@
 Data routes - JSON data file management
 """
 
-from flask import request, jsonify
+from flask import request
 
 from kortex import data
 from backend.errors import handle_exceptions, success_response
@@ -16,7 +16,7 @@ def register_data_routes(app):
     def get_all_data():
         """Get all JSON data files"""
         context = data.load_all_context()
-        return jsonify(context)
+        return success_response(data=context)
 
     @app.route('/api/data/<filename>', methods=['GET'])
     @handle_exceptions
@@ -26,7 +26,7 @@ def register_data_routes(app):
             filename = f"{filename}.json"
         
         file_data = data.load_json_file(filename)
-        return jsonify({"data": file_data})
+        return success_response(data=file_data)
     
     @app.route('/api/data/<filename>', methods=['PUT'])
     @handle_exceptions

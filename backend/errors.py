@@ -6,11 +6,14 @@ Provides consistent error responses and global exception handlers.
 
 from __future__ import annotations
 
-import traceback
+import logging
+import os
 from functools import wraps
 from typing import Any, Callable, TypeVar
 
 from flask import jsonify, Response
+
+logger = logging.getLogger(__name__)
 
 
 # Type for decorated functions
@@ -116,17 +119,12 @@ def handle_exceptions(f: F) -> F:
         except APIError as e:
             return error_response(e.message, e.status_code, e.details)
         except Exception as e:
-            # Log the full traceback for debugging
-            traceback.print_exc()
-            
-            # Check debug mode
-            import os
-            debug_mode = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
-            
-            if debug_mode:
+            logger.exception("Unhandled exception in route '%s'", f.__name__)
+
+            expose_error_details = os.getenv("KORTEX_EXPOSE_ERROR_DETAILS", "false").lower() == "true"
+            if expose_error_details:
                 return error_response(f"Internal server error: {str(e)}", 500)
-            else:
-                return error_response("An internal server error occurred.", 500)
+            return error_response("An internal server error occurred.", 500)
     
     return wrapper  # type: ignore
 
@@ -148,16 +146,12 @@ def handle_async_exceptions(f: F) -> F:
         except APIError as e:
             return error_response(e.message, e.status_code, e.details)
         except Exception as e:
-            traceback.print_exc()
-            
-            # Check debug mode
-            import os
-            debug_mode = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
-            
-            if debug_mode:
+            logger.exception("Unhandled async exception in route '%s'", f.__name__)
+
+            expose_error_details = os.getenv("KORTEX_EXPOSE_ERROR_DETAILS", "false").lower() == "true"
+            if expose_error_details:
                 return error_response(f"Internal server error: {str(e)}", 500)
-            else:
-                return error_response("An internal server error occurred.", 500)
+            return error_response("An internal server error occurred.", 500)
     
     return wrapper  # type: ignore
 
@@ -184,5 +178,5 @@ def register_error_handlers(app: Any) -> None:
     
     @app.errorhandler(500)
     def handle_internal_error(error: Any) -> tuple[Response, int]:
-        traceback.print_exc()
+        logger.exception("Unhandled Flask 500 error: %s", error)
         return error_response("Internal server error", 500)

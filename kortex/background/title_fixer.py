@@ -139,17 +139,16 @@ Respond with ONLY the title in Finnish, no quotes or extra text. Be specific and
                         logger.info("Fixed: %s → '%s'", conv_file.name, new_title)
                         fixed_count += 1
                         
-                except Exception as e:
-                    # Silently skip errors in background task
-                    pass
+                except Exception:
+                    logger.exception("Title fixer failed for conversation file: %s", conv_file.name)
             
             if fixed_count > 0:
                 logger.info("Title fixer completed: %d titles fixed", fixed_count)
             else:
                 logger.info("Title fixer: All titles OK")
                 
-        except Exception as e:
-            logger.error("Title fixer error: %s", e)
+        except Exception:
+            logger.exception("Title fixer run failed")
 
 
 # Singleton instance

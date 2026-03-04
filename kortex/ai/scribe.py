@@ -128,8 +128,6 @@ Based on the conversation above, update any data files if new facts were establi
                 
             return updates
 
-        except Exception as e:
-            logger.error(f"Scribe Error: {e}")
-            import traceback
-            traceback.print_exc()
+        except Exception:
+            logger.exception("Scribe failed during analyze_and_update")
             return []

@@ -68,12 +68,12 @@ export const sendMessage = async (message, history = [], model = null, provider 
 
 export const getHistory = async () => {
   const response = await api.get('/api/history');
-  return response.data;
+  return unwrapData(response, []);
 };
 
 export const getChat = async (chatId) => {
   const response = await api.get(`/api/history/${chatId}`);
-  return response.data;
+  return unwrapData(response, null);
 };
 
 /**
@@ -98,7 +98,7 @@ export const deleteConversation = async (chatId) => {
  */
 export const pinConversation = async (chatId) => {
   const response = await api.post(`/api/pin/${chatId}`);
-  return response.data;
+  return unwrapData(response, { pinned: false });
 };
 
 /**
@@ -149,7 +149,7 @@ export const runMega = async (message, history, chatId = null) => {
 
 export const getAllData = async () => {
   const response = await api.get('/api/data');
-  return response.data;
+  return unwrapData(response, {});
 };
 
 /**
@@ -157,7 +157,7 @@ export const getAllData = async () => {
  */
 export const getDataFile = async (filename) => {
   const response = await api.get(`/api/data/${filename}`);
-  return response.data;
+  return { data: unwrapData(response, {}) };
 };
 
 /**
@@ -173,7 +173,7 @@ export const updateDataFile = async (filename, data) => {
  */
 export const getModels = async () => {
   const response = await api.get('/api/config');
-  return response.data;
+  return unwrapData(response, {});
 };
 
 /**
@@ -200,7 +200,7 @@ export const executeFunction = async (functionName, args) => {
  */
 export const getApiKeysStatus = async () => {
   const response = await api.get('/api/config/api-keys');
-  return response.data;
+  return unwrapData(response, { openai: false, google: false });
 };
 
 /**

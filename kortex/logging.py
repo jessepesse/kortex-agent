@@ -2,7 +2,7 @@
 Centralized logging configuration for Kortex Agent
 
 Provides consistent logging across all modules with:
-- Colored console output
+- Timestamped output
 - Structured log format
 - Configurable log levels
 """
@@ -10,8 +10,8 @@ Provides consistent logging across all modules with:
 from __future__ import annotations
 
 import logging
+import os
 import sys
-from typing import Optional
 
 
 # Custom formatter with colors for console output
@@ -27,42 +27,49 @@ class ColoredFormatter(logging.Formatter):
     }
     RESET = '\033[0m'
     
-    # Emoji prefixes for visual clarity
-    EMOJI = {
-        'DEBUG': '🔍',
-        'INFO': '✨',
-        'WARNING': '⚠️',
-        'ERROR': '❌',
-        'CRITICAL': '🚨',
-    }
-    
     def format(self, record: logging.LogRecord) -> str:
         color = self.COLORS.get(record.levelname, '')
-        emoji = self.EMOJI.get(record.levelname, '')
-        
-        # Format: emoji [LEVEL] module: message
-        log_fmt = f'{emoji} {color}[%(levelname)s]{self.RESET} %(name)s: %(message)s'
-        formatter = logging.Formatter(log_fmt)
+        log_fmt = (
+            "%(asctime)s "
+            f"{color}[%(levelname)s]{self.RESET} "
+            "%(name)s:%(lineno)d - %(message)s"
+        )
+        formatter = logging.Formatter(log_fmt, datefmt="%Y-%m-%d %H:%M:%S")
         return formatter.format(record)
 
 
-def setup_logging(level: str = "INFO") -> None:
+def _is_color_enabled() -> bool:
+    return os.getenv("KORTEX_LOG_COLOR", "true").lower() == "true"
+
+
+def setup_logging(level: str | None = None) -> None:
     """
     Configure logging for the entire application.
     
     Args:
-        level: Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+        level: Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL).
+               If None, uses KORTEX_LOG_LEVEL environment variable.
     """
+    effective_level = level or os.getenv("KORTEX_LOG_LEVEL", "INFO")
+
     # Get root logger
     root_logger = logging.getLogger()
-    root_logger.setLevel(getattr(logging, level.upper(), logging.INFO))
+    root_logger.setLevel(getattr(logging, effective_level.upper(), logging.INFO))
     
     # Remove existing handlers
     root_logger.handlers.clear()
     
-    # Console handler with colors
+    # Console handler
     console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setFormatter(ColoredFormatter())
+    if _is_color_enabled():
+        console_handler.setFormatter(ColoredFormatter())
+    else:
+        console_handler.setFormatter(
+            logging.Formatter(
+                "%(asctime)s [%(levelname)s] %(name)s:%(lineno)d - %(message)s",
+                datefmt="%Y-%m-%d %H:%M:%S",
+            )
+        )
     root_logger.addHandler(console_handler)
     
     # Set level for third-party libraries to reduce noise
