@@ -113,12 +113,13 @@ const Chat = ({ messages, onSendMessage, isLoading, contextData, councilLoading 
         const loadSettings = async () => {
             try {
                 const settings = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/config`).then(r => r.json());
-                setCurrentModel(settings.default_model);
+                const config = settings.data || settings;
+                setCurrentModel(config.default_model);
 
                 // Check if current model supports thinking
-                const provider = settings.default_provider;
-                const modelData = settings.providers?.[provider]?.find(m =>
-                    (typeof m === 'object' ? m.id : m) === settings.default_model
+                const provider = config.default_provider;
+                const modelData = config.providers?.[provider]?.find(m =>
+                    (typeof m === 'object' ? m.id : m) === config.default_model
                 );
                 setSupportsThinking(typeof modelData === 'object' && modelData.thinking === true);
             } catch (error) {

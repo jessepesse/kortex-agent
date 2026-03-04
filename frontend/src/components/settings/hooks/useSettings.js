@@ -43,7 +43,8 @@ export function useSettings(isOpen) {
     const loadModelSettings = useCallback(async () => {
         try {
             const response = await fetch(`${API_URL}/api/config`);
-            const config = await response.json();
+            const result = await response.json();
+            const config = result.data || result;
             console.log('📥 Loaded model settings:', config.default_model, config.default_provider, config.providers);
             setSelectedModel(config.default_model || 'gemini-3-flash-preview');
             setSelectedProvider(config.default_provider || 'google');

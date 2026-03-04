@@ -21,8 +21,8 @@ const unwrapData = (response, fallback = {}) => response.data?.data ?? fallback;
 export const sendMessage = async (message, history = [], model = null, provider = null, chatId = null, files = [], reasoningConfig = null, webSearchEnabled = false, forceSearchModel = null) => {
   // If web search is enabled, use the websearch endpoint
   if (webSearchEnabled) {
-    const payload = { 
-      message, 
+    const payload = {
+      message,
       history,
       reasoning_enabled: reasoningConfig?.enabled || false
     };
@@ -30,11 +30,11 @@ export const sendMessage = async (message, history = [], model = null, provider 
     if (provider) payload.provider = provider;
     if (chatId) payload.chat_id = chatId;
     if (forceSearchModel) payload.force_model = forceSearchModel;
-    
+
     const response = await api.post('/api/chat/websearch', payload);
     return unwrapData(response, {});
   }
-  
+
   // Standard chat endpoint
   const payload = { message, history };
   if (model) payload.model = model;
@@ -90,7 +90,7 @@ export const scoutAnalyze = async (message, history = []) => {
  */
 export const deleteConversation = async (chatId) => {
   const response = await api.delete(`/api/history/${chatId}`);
-  return response.data;
+  return unwrapData(response, {});
 };
 
 /**
@@ -165,7 +165,7 @@ export const getDataFile = async (filename) => {
  */
 export const updateDataFile = async (filename, data) => {
   const response = await api.put(`/api/data/${filename}`, { data });
-  return response.data;
+  return unwrapData(response, {});
 };
 
 /**
@@ -181,7 +181,7 @@ export const getModels = async () => {
  */
 export const setModel = async (provider, model) => {
   const response = await api.post('/api/models', { provider, model });
-  return response.data;
+  return unwrapData(response, {});
 };
 
 /**
@@ -208,7 +208,7 @@ export const getApiKeysStatus = async () => {
  */
 export const setApiKeys = async (keys) => {
   const response = await api.post('/api/config/api-keys', keys);
-  return response.data;
+  return unwrapData(response, {});
 };
 
 // =============================================================================
