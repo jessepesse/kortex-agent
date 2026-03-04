@@ -5,6 +5,23 @@ All notable changes to Kortex Agent will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0-beta2] - 2026-03-04
+
+### Fixed
+- **Frontend dependency resolution** — Pinned `eslint` and `@eslint/js` to `9.39.3` to resolve `npm ci` peer dependency conflict with `eslint-plugin-react-hooks@7.0.1`.
+
+### Changed
+- **Frontend Docker runtime** — Upgraded `frontend/Dockerfile` base image from `node:18-alpine` to `node:22-alpine` for Vite 7 engine compatibility.
+- **Release workflow hardening** — Added local preflight script and integrated it into `github-release.md` process:
+  - `npm --prefix frontend ci`
+  - `npm --prefix frontend run lint`
+  - `npm --prefix frontend run build`
+  - `pytest --tb=short -q`
+  - `./scripts/security_check.sh`
+- **Release readiness docs** — Reformatted release plan to a GitHub-friendly roadmap/checklist format.
+
+---
+
 ## [1.0.0-alpha7] - 2026-03-04
 
 ### Changed
