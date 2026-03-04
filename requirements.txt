@@ -17,7 +17,7 @@ flask-cors==6.0.2
 pypdf==6.7.5
 
 # Environment
-python-dotenv==1.2.1
+python-dotenv==1.2.2
 
 # Testing
 pytest==9.0.2
