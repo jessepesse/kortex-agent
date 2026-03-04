@@ -22,8 +22,6 @@ const ScoutCard = ({
   }
 
   const isGrokRecommended = recommended_model?.includes('grok');
-  const isPerplexityRecommended = recommended_model?.includes('perplexity');
-
   return (
     <div className="scout-card">
       <div className="scout-card-header">

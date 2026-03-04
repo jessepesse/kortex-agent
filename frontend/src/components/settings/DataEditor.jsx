@@ -7,9 +7,7 @@ import React from 'react';
 const DataEditor = ({
     dataFiles,
     selectedFile,
-    onSelectFile,
-    jsonContent,
-    onJsonChange
+    onSelectFile
 }) => {
     return (
         <>

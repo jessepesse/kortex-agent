@@ -12,7 +12,7 @@ import ScoutCard from './ScoutCard';
 import { scoutAnalyze } from '../services/api';
 import './Chat.css';
 
-const Chat = ({ messages, onSendMessage, isLoading, isSidebarOpen, contextData, councilLoading }) => {
+const Chat = ({ messages, onSendMessage, isLoading, contextData, councilLoading }) => {
     const [input, setInput] = useState('');
     const [attachedFiles, setAttachedFiles] = useState([]);
     const [councilMode, setCouncilMode] = useState(null); // null, 'hive', or 'elite'
@@ -20,7 +20,6 @@ const Chat = ({ messages, onSendMessage, isLoading, isSidebarOpen, contextData, 
     const textareaRef = useRef(null);
     const fileInputRef = useRef(null);
     const [currentModel, setCurrentModel] = useState(null);
-    const [currentProvider, setCurrentProvider] = useState(null);
     const [thinkingEnabled, setThinkingEnabled] = useState(false);
     const [supportsThinking, setSupportsThinking] = useState(false);
     const [webSearchEnabled, setWebSearchEnabled] = useState(false);
@@ -115,7 +114,6 @@ const Chat = ({ messages, onSendMessage, isLoading, isSidebarOpen, contextData, 
             try {
                 const settings = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/config`).then(r => r.json());
                 setCurrentModel(settings.default_model);
-                setCurrentProvider(settings.default_provider);
 
                 // Check if current model supports thinking
                 const provider = settings.default_provider;
@@ -127,7 +125,6 @@ const Chat = ({ messages, onSendMessage, isLoading, isSidebarOpen, contextData, 
                 console.error('Failed to load settings:', error);
                 // Fallback
                 setCurrentModel('gemini-3-flash-preview');
-                setCurrentProvider('google');
                 setSupportsThinking(false);
             }
         };
@@ -136,7 +133,6 @@ const Chat = ({ messages, onSendMessage, isLoading, isSidebarOpen, contextData, 
         // Listen for model changes from SettingsModal
         const handleModelChange = (event) => {
             setCurrentModel(event.detail.model);
-            setCurrentProvider(event.detail.provider);
             setSupportsThinking(event.detail.supportsThinking || false);
             // Reset thinking toggle when switching models
             if (!event.detail.supportsThinking) {

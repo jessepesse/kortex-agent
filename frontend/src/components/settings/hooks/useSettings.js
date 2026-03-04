@@ -18,6 +18,41 @@ export function useSettings(isOpen) {
     const [conversations, setConversations] = useState([]);
     const [selectedConversations, setSelectedConversations] = useState([]);
 
+    async function loadData() {
+        try {
+            const data = await getAllData();
+            setDataFiles(data);
+            if (data[selectedFile]) {
+                setJsonContent(JSON.stringify(data[selectedFile], null, 2));
+            }
+        } catch (error) {
+            console.error('Failed to load data:', error);
+        }
+    }
+
+    async function loadConversations() {
+        try {
+            const result = await getBackupConversations();
+            setConversations(result.conversations || []);
+            setSelectedConversations(result.conversations?.map(c => c.id) || []);
+        } catch (error) {
+            console.error('Failed to load conversations:', error);
+        }
+    }
+
+    async function loadModelSettings() {
+        try {
+            const response = await fetch(`${API_URL}/api/config`);
+            const config = await response.json();
+            console.log('📥 Loaded model settings:', config.default_model, config.default_provider, config.providers);
+            setSelectedModel(config.default_model || 'gemini-3-flash-preview');
+            setSelectedProvider(config.default_provider || 'google');
+            setAvailableModels(config.providers || {});
+        } catch (error) {
+            console.error('Failed to load model settings:', error);
+        }
+    }
+
     // Load data when modal opens
     useEffect(() => {
         if (isOpen) {
@@ -33,41 +68,6 @@ export function useSettings(isOpen) {
             setJsonContent(JSON.stringify(dataFiles[selectedFile], null, 2));
         }
     }, [selectedFile, dataFiles]);
-
-    const loadData = async () => {
-        try {
-            const data = await getAllData();
-            setDataFiles(data);
-            if (data[selectedFile]) {
-                setJsonContent(JSON.stringify(data[selectedFile], null, 2));
-            }
-        } catch (error) {
-            console.error('Failed to load data:', error);
-        }
-    };
-
-    const loadConversations = async () => {
-        try {
-            const result = await getBackupConversations();
-            setConversations(result.conversations || []);
-            setSelectedConversations(result.conversations?.map(c => c.id) || []);
-        } catch (error) {
-            console.error('Failed to load conversations:', error);
-        }
-    };
-
-    const loadModelSettings = async () => {
-        try {
-            const response = await fetch(`${API_URL}/api/config`);
-            const config = await response.json();
-            console.log('📥 Loaded model settings:', config.default_model, config.default_provider, config.providers);
-            setSelectedModel(config.default_model || 'gemini-3-flash-preview');
-            setSelectedProvider(config.default_provider || 'google');
-            setAvailableModels(config.providers || {});
-        } catch (error) {
-            console.error('Failed to load model settings:', error);
-        }
-    };
 
     const handleModelChange = async (providerAndModel) => {
         // Value format: "provider:model_id"
