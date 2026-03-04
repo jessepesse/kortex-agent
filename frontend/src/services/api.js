@@ -218,7 +218,8 @@ export const setApiKeys = async (keys) => {
  */
 export const getBackupConversations = async () => {
   const response = await api.get('/api/backup/conversations');
-  return response.data;
+  // Backend returns { success: true, data: { conversations: [...] } }
+  return response.data?.data || { conversations: [] };
 };
 
 /**
@@ -245,7 +246,14 @@ export const validateBackup = async (file) => {
   const response = await api.post('/api/backup/validate', formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
   });
-  return response.data;
+  // Backend returns { success: true, data: { valid, errors, warnings, ... } }
+  return response.data?.data || {
+    valid: false,
+    errors: ['Invalid validation response'],
+    warnings: [],
+    manifest: null,
+    files: []
+  };
 };
 
 /**
@@ -259,7 +267,12 @@ export const restoreBackup = async (file) => {
   const response = await api.post('/api/backup/restore', formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
   });
-  return response.data;
+  // Backend returns { success: true, data: { success, restored_files, errors } }
+  return response.data?.data || {
+    success: false,
+    restored_files: [],
+    errors: ['Invalid restore response']
+  };
 };
 
 export default api;
