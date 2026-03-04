@@ -38,7 +38,10 @@ jobs:
           pip install -r requirements.txt
       
       - name: Run pytest
-        run: pytest --tb=short -v
+        run: timeout 180s pytest --tb=short -v
+      
+      - name: Run pytest (stability re-run)
+        run: timeout 180s pytest --tb=short -v
 
   # =============================================================================
   # BUILD DOCKER IMAGES
