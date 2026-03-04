@@ -32,6 +32,14 @@ Should show: `✓ Logged in to github.com account <username>`
 git tag -l "v*"
 ```
 
+3. Local release preflight must pass before tagging/release
+
+```bash
+./scripts/preflight_release.sh
+```
+
+This catches dependency conflicts and quality gate failures locally before pushing fixes to GitHub.
+
 ## Core Concepts
 
 ### Version Numbering (Semantic Versioning)
@@ -47,6 +55,21 @@ git tag -l "v*"
 - **Draft Release:** Work-in-progress release notes
 
 ## Step-by-Step Release Creation Process
+
+### Step 0: Run Local Preflight
+
+Always run this before drafting final release notes or creating tags:
+
+```bash
+./scripts/preflight_release.sh
+```
+
+It runs:
+- `npm --prefix frontend ci`
+- `npm --prefix frontend run lint`
+- `npm --prefix frontend run build`
+- `pytest --tb=short -q`
+- `./scripts/security_check.sh`
 
 ### Step 1: Analyze Changes Since Last Release
 
@@ -159,6 +182,9 @@ List all commits with hashes and dates:
 ### Step 4: Create Git Tag
 
 ```bash
+# Preflight first (required)
+./scripts/preflight_release.sh
+
 # Create annotated tag
 git tag -a v4.0.0 -m "Release v4.0.0: Major performance improvements"
 
