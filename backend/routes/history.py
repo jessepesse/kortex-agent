@@ -2,8 +2,6 @@
 History routes - Conversation management
 """
 
-from flask import jsonify
-
 from kortex import data
 from backend.errors import handle_exceptions, NotFoundError, success_response
 
@@ -16,7 +14,7 @@ def register_history_routes(app):
     def get_history():
         """Get list of past conversations"""
         conversations = data.list_conversations()
-        return jsonify(conversations)
+        return success_response(data=conversations)
 
     @app.route('/api/history/<chat_id>', methods=['GET'])
     @handle_exceptions
@@ -25,7 +23,7 @@ def register_history_routes(app):
         conversation = data.load_conversation(chat_id)
         if not conversation:
             raise NotFoundError("Chat not found")
-        return jsonify(conversation)
+        return success_response(data=conversation)
     
     @app.route('/api/history/<chat_id>', methods=['DELETE'])
     @handle_exceptions
@@ -43,4 +41,5 @@ def register_history_routes(app):
         pinned = data.toggle_pin(chat_id)
         if pinned is None:
             raise NotFoundError("Conversation not found")
-        return jsonify({"pinned": pinned})
+        return success_response(data={"pinned": pinned})
+

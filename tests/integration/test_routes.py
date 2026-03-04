@@ -36,8 +36,9 @@ class TestDataEndpoints:
         response = client.get('/api/data')
         
         assert response.status_code == 200
-        data = response.get_json()
-        assert "profile" in data
+        envelope = response.get_json()
+        assert envelope["success"] is True
+        assert "profile" in envelope["data"]
     
     def test_get_specific_file(self, client, temp_data_dir):
         """GET /api/data/<filename> should return specific file"""
@@ -48,9 +49,9 @@ class TestDataEndpoints:
         response = client.get('/api/data/health')
         
         assert response.status_code == 200
-        data = response.get_json()
-        assert "data" in data
-        assert data["data"]["energy"] == 8
+        envelope = response.get_json()
+        assert envelope["success"] is True
+        assert envelope["data"]["energy"] == 8
     
     def test_update_data_file(self, client, temp_data_dir):
         """PUT /api/data/<filename> should update file"""
@@ -80,8 +81,9 @@ class TestHistoryEndpoints:
         response = client.get('/api/history')
         
         assert response.status_code == 200
-        data = response.get_json()
-        assert isinstance(data, list)
+        envelope = response.get_json()
+        assert envelope["success"] is True
+        assert isinstance(envelope["data"], list)
     
     def test_get_history_with_conversations(self, client, temp_data_dir):
         """GET /api/history should return conversations"""
@@ -93,9 +95,10 @@ class TestHistoryEndpoints:
         response = client.get('/api/history')
         
         assert response.status_code == 200
-        data = response.get_json()
-        assert len(data) == 1
-        assert data[0]["title"] == "Test Chat"
+        envelope = response.get_json()
+        assert envelope["success"] is True
+        assert len(envelope["data"]) == 1
+        assert envelope["data"][0]["title"] == "Test Chat"
     
     def test_get_specific_conversation(self, client, temp_data_dir):
         """GET /api/history/<id> should return conversation"""
@@ -108,9 +111,10 @@ class TestHistoryEndpoints:
         response = client.get(f'/api/history/{chat_id}')
         
         assert response.status_code == 200
-        data = response.get_json()
-        assert data["title"] == "Test Chat"
-        assert len(data["messages"]) == 1
+        envelope = response.get_json()
+        assert envelope["success"] is True
+        assert envelope["data"]["title"] == "Test Chat"
+        assert len(envelope["data"]["messages"]) == 1
     
     def test_delete_conversation(self, client, temp_data_dir):
         """DELETE /api/history/<id> should remove conversation"""
@@ -133,21 +137,23 @@ class TestConfigEndpoints:
         response = client.get('/api/config')
         
         assert response.status_code == 200
-        data = response.get_json()
-        assert "providers" in data
-        assert "default_provider" in data
-        assert "default_model" in data
+        envelope = response.get_json()
+        assert envelope["success"] is True
+        assert "providers" in envelope["data"]
+        assert "default_provider" in envelope["data"]
+        assert "default_model" in envelope["data"]
     
     def test_get_api_keys_status(self, client, temp_config_file):
         """GET /api/config/api-keys should return key status"""
         response = client.get('/api/config/api-keys')
         
         assert response.status_code == 200
-        data = response.get_json()
-        assert "openai" in data
-        assert "google" in data
+        envelope = response.get_json()
+        assert envelope["success"] is True
+        assert "openai" in envelope["data"]
+        assert "google" in envelope["data"]
         # Should be booleans
-        assert isinstance(data["openai"], bool)
+        assert isinstance(envelope["data"]["openai"], bool)
 
 
 class TestModelsEndpoints:
@@ -158,10 +164,11 @@ class TestModelsEndpoints:
         response = client.get('/api/models')
         
         assert response.status_code == 200
-        data = response.get_json()
-        assert "providers" in data
-        assert "current_provider" in data
-        assert "current_model" in data
+        envelope = response.get_json()
+        assert envelope["success"] is True
+        assert "providers" in envelope["data"]
+        assert "current_provider" in envelope["data"]
+        assert "current_model" in envelope["data"]
     
     def test_set_model(self, client, temp_config_file):
         """POST /api/models should change default model"""

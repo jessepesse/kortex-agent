@@ -21,8 +21,8 @@ const unwrapData = (response, fallback = {}) => response.data?.data ?? fallback;
 export const sendMessage = async (message, history = [], model = null, provider = null, chatId = null, files = [], reasoningConfig = null, webSearchEnabled = false, forceSearchModel = null) => {
   // If web search is enabled, use the websearch endpoint
   if (webSearchEnabled) {
-    const payload = { 
-      message, 
+    const payload = {
+      message,
       history,
       reasoning_enabled: reasoningConfig?.enabled || false
     };
@@ -30,11 +30,11 @@ export const sendMessage = async (message, history = [], model = null, provider 
     if (provider) payload.provider = provider;
     if (chatId) payload.chat_id = chatId;
     if (forceSearchModel) payload.force_model = forceSearchModel;
-    
+
     const response = await api.post('/api/chat/websearch', payload);
     return unwrapData(response, {});
   }
-  
+
   // Standard chat endpoint
   const payload = { message, history };
   if (model) payload.model = model;
@@ -68,12 +68,12 @@ export const sendMessage = async (message, history = [], model = null, provider 
 
 export const getHistory = async () => {
   const response = await api.get('/api/history');
-  return response.data;
+  return unwrapData(response, []);
 };
 
 export const getChat = async (chatId) => {
   const response = await api.get(`/api/history/${chatId}`);
-  return response.data;
+  return unwrapData(response, {});
 };
 
 /**
@@ -90,7 +90,7 @@ export const scoutAnalyze = async (message, history = []) => {
  */
 export const deleteConversation = async (chatId) => {
   const response = await api.delete(`/api/history/${chatId}`);
-  return response.data;
+  return unwrapData(response, {});
 };
 
 /**
@@ -98,7 +98,7 @@ export const deleteConversation = async (chatId) => {
  */
 export const pinConversation = async (chatId) => {
   const response = await api.post(`/api/pin/${chatId}`);
-  return response.data;
+  return unwrapData(response, {});
 };
 
 /**
@@ -149,7 +149,7 @@ export const runMega = async (message, history, chatId = null) => {
 
 export const getAllData = async () => {
   const response = await api.get('/api/data');
-  return response.data;
+  return unwrapData(response, {});
 };
 
 /**
@@ -157,7 +157,7 @@ export const getAllData = async () => {
  */
 export const getDataFile = async (filename) => {
   const response = await api.get(`/api/data/${filename}`);
-  return response.data;
+  return unwrapData(response, {});
 };
 
 /**
@@ -165,7 +165,7 @@ export const getDataFile = async (filename) => {
  */
 export const updateDataFile = async (filename, data) => {
   const response = await api.put(`/api/data/${filename}`, { data });
-  return response.data;
+  return unwrapData(response, {});
 };
 
 /**
@@ -173,7 +173,7 @@ export const updateDataFile = async (filename, data) => {
  */
 export const getModels = async () => {
   const response = await api.get('/api/config');
-  return response.data;
+  return unwrapData(response, {});
 };
 
 /**
@@ -181,7 +181,7 @@ export const getModels = async () => {
  */
 export const setModel = async (provider, model) => {
   const response = await api.post('/api/models', { provider, model });
-  return response.data;
+  return unwrapData(response, {});
 };
 
 /**
@@ -200,7 +200,7 @@ export const executeFunction = async (functionName, args) => {
  */
 export const getApiKeysStatus = async () => {
   const response = await api.get('/api/config/api-keys');
-  return response.data;
+  return unwrapData(response, {});
 };
 
 /**
@@ -208,7 +208,7 @@ export const getApiKeysStatus = async () => {
  */
 export const setApiKeys = async (keys) => {
   const response = await api.post('/api/config/api-keys', keys);
-  return response.data;
+  return unwrapData(response, {});
 };
 
 // =============================================================================

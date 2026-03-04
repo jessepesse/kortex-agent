@@ -2,7 +2,7 @@
 Config routes - API keys, models, settings
 """
 
-from flask import request, jsonify
+from flask import request
 
 from kortex import config
 from backend.errors import handle_exceptions, ValidationError, success_response
@@ -16,7 +16,7 @@ def register_config_routes(app):
     def get_config():
         """Get current configuration including available models"""
         cfg = config.load_config()
-        return jsonify({
+        return success_response(data={
             'providers': cfg.get('models', {}),
             'default_provider': cfg.get('default_provider', 'google'),
             'default_model': cfg.get('default_model', 'gemini-3-flash-preview')
@@ -27,7 +27,7 @@ def register_config_routes(app):
     def get_models():
         """Get available models and current selection"""
         cfg = config.load_config()
-        return jsonify({
+        return success_response(data={
             "providers": cfg['models'],
             "current_provider": cfg['default_provider'],
             "current_model": cfg['default_model']
@@ -65,7 +65,7 @@ def register_config_routes(app):
     def get_api_keys_status():
         """Check which API keys are configured (without revealing the keys)"""
         cfg = config.load_config()
-        return jsonify({
+        return success_response(data={
             "openai": bool(cfg['api_keys'].get('openai')),
             "google": bool(cfg['api_keys'].get('google'))
         })
@@ -85,3 +85,4 @@ def register_config_routes(app):
         
         config.save_config(cfg)
         return success_response(message="API keys updated")
+

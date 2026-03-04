@@ -174,3 +174,116 @@ class TestCouncilRouteSchemas:
         payload, status = await _call_async_view(app, "council", "/api/council", {"message": ""})
         assert status == 400
         _assert_error_envelope(payload)
+
+
+def _call_sync_view(app, endpoint, path, method="GET", req_json=None):
+    view = app.view_functions[endpoint]
+    kwargs = {"method": method}
+    if req_json is not None:
+        kwargs["json"] = req_json
+    with app.test_request_context(path, **kwargs):
+        result = view() if not endpoint.endswith("_id") else None
+        if result is None:
+            return None, None
+    return _normalize_result(result)
+
+
+class TestConfigRouteSchemas:
+    def test_get_config_success_envelope(self, app):
+        view = app.view_functions["get_config"]
+        with app.test_request_context("/api/config", method="GET"):
+            result = view()
+        payload, status = _normalize_result(result)
+        assert status == 200
+        _assert_success_envelope(payload)
+        assert "default_provider" in payload["data"]
+        assert "default_model" in payload["data"]
+        assert "providers" in payload["data"]
+
+    def test_get_models_success_envelope(self, app):
+        view = app.view_functions["get_models"]
+        with app.test_request_context("/api/models", method="GET"):
+            result = view()
+        payload, status = _normalize_result(result)
+        assert status == 200
+        _assert_success_envelope(payload)
+        assert "providers" in payload["data"]
+        assert "current_provider" in payload["data"]
+        assert "current_model" in payload["data"]
+
+    def test_get_api_keys_status_envelope(self, app):
+        view = app.view_functions["get_api_keys_status"]
+        with app.test_request_context("/api/config/api-keys", method="GET"):
+            result = view()
+        payload, status = _normalize_result(result)
+        assert status == 200
+        _assert_success_envelope(payload)
+
+
+class TestDataRouteSchemas:
+    def test_get_all_data_success_envelope(self, app):
+        view = app.view_functions["get_all_data"]
+        with app.test_request_context("/api/data", method="GET"):
+            result = view()
+        payload, status = _normalize_result(result)
+        assert status == 200
+        _assert_success_envelope(payload)
+
+    def test_get_data_file_success_envelope(self, app, temp_data_dir):
+        # Create a test data file
+        import json, os
+        test_file = os.path.join(temp_data_dir, "profile.json")
+        with open(test_file, "w") as f:
+            json.dump({"name": "test"}, f)
+
+        view = app.view_functions["get_data_file"]
+        with app.test_request_context("/api/data/profile", method="GET"):
+            result = view(filename="profile")
+        payload, status = _normalize_result(result)
+        assert status == 200
+        _assert_success_envelope(payload)
+        assert payload["data"]["name"] == "test"
+
+
+class TestHistoryRouteSchemas:
+    def test_get_history_success_envelope(self, app):
+        view = app.view_functions["get_history"]
+        with app.test_request_context("/api/history", method="GET"):
+            result = view()
+        payload, status = _normalize_result(result)
+        assert status == 200
+        _assert_success_envelope(payload)
+        assert isinstance(payload["data"], list)
+
+    def test_get_chat_history_success_envelope(self, app, temp_data_dir):
+        chat_id = data.generate_chat_id()
+        data.save_conversation(chat_id, [{"role": "user", "content": "hi"}], "Test")
+
+        view = app.view_functions["get_chat_history"]
+        with app.test_request_context(f"/api/history/{chat_id}", method="GET"):
+            result = view(chat_id=chat_id)
+        payload, status = _normalize_result(result)
+        assert status == 200
+        _assert_success_envelope(payload)
+        assert "messages" in payload["data"]
+
+    def test_get_chat_history_not_found_envelope(self, app):
+        view = app.view_functions["get_chat_history"]
+        with app.test_request_context("/api/history/nonexistent", method="GET"):
+            result = view(chat_id="nonexistent")
+        payload, status = _normalize_result(result)
+        assert status == 404
+        _assert_error_envelope(payload)
+
+    def test_pin_conversation_success_envelope(self, app, temp_data_dir):
+        chat_id = data.generate_chat_id()
+        data.save_conversation(chat_id, [], "Pin Test")
+
+        view = app.view_functions["pin_conversation"]
+        with app.test_request_context(f"/api/pin/{chat_id}", method="POST"):
+            result = view(chat_id=chat_id)
+        payload, status = _normalize_result(result)
+        assert status == 200
+        _assert_success_envelope(payload)
+        assert "pinned" in payload["data"]
+

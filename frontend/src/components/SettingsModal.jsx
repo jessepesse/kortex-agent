@@ -51,7 +51,8 @@ const SettingsModal = ({ isOpen, onClose }) => {
     const loadModelSettings = useCallback(async () => {
         try {
             const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/config`);
-            const config = await response.json();
+            const result = await response.json();
+            const config = result.data || result;
             console.log('📥 Loaded model settings:', config.default_model, config.default_provider, config.providers);
             console.log('📥 OPENROUTER:', config.providers?.openrouter);
             alert('Providers loaded: ' + Object.keys(config.providers || {}).join(', '));
