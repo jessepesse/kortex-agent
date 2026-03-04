@@ -5,6 +5,7 @@ Flask Backend Server for Kortex Agent
 
 import os
 import sys
+import logging
 from pathlib import Path
 
 # Add parent directory to path for kortex imports
@@ -65,12 +66,16 @@ def start_background_services():
 
 
 if __name__ == '__main__':
-    print("=" * 60)
-    print("🧠 Kortex Agent Backend - Starting...")
-    print("=" * 60)
-    print("API will be available at: http://localhost:5001")
-    print("Health check: http://localhost:5001/health")
-    print("=" * 60)
+    from kortex.logging import setup_logging
+    setup_logging()
+    logger = logging.getLogger(__name__)
+
+    logger.info("=" * 60)
+    logger.info("🧠 Kortex Agent Backend - Starting...")
+    logger.info("=" * 60)
+    logger.info("API will be available at: http://localhost:5001")
+    logger.info("Health check: http://localhost:5001/health")
+    logger.info("=" * 60)
     
     # Start background services
     start_background_services()
@@ -78,11 +83,11 @@ if __name__ == '__main__':
     # Security: Debug mode disabled by default, controlled via env var
     debug_mode = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
     if debug_mode:
-        print("⚠️  WARNING: Debug mode is ENABLED")
+        logger.warning("Debug mode is ENABLED")
 
     bind_host = resolve_bind_host()
     if bind_host != '127.0.0.1':
-        print(f"⚠️  WARNING: Backend binding to {bind_host}.")
-        print("⚠️  Kortex is intended for local use only. Do not expose to public network.")
+        logger.warning("Backend binding to %s.", bind_host)
+        logger.warning("Kortex is intended for local use only. Do not expose to public network.")
 
     app.run(host=bind_host, port=5001, debug=debug_mode) # nosec B104

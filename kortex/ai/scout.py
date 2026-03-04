@@ -1,8 +1,11 @@
 """Scout Service - Intelligent search decision maker"""
 
 import json
+import logging
 from openai import AsyncOpenAI
 from ..config import load_config
+
+logger = logging.getLogger(__name__)
 
 
 class ScoutService:
@@ -123,11 +126,11 @@ Respond ONLY with valid JSON, no markdown or extra text."""
             
             # Handle None or empty response
             if not result_text:
-                print("❌ Scout received empty response from LLM")
+                logger.error("Scout received empty response from LLM")
                 return self._default_response("Empty LLM response")
             
             result_text = result_text.strip()
-            print(f"🔍 Scout raw response: {result_text[:200]}...")
+            logger.debug("Scout raw response: %s...", result_text[:200])
             
             # Parse JSON response
             # Handle potential markdown code blocks
@@ -184,15 +187,15 @@ Respond ONLY with valid JSON, no markdown or extra text."""
                 if search_type == "RESEARCH":
                     response_data["override_reason"] = "FORCE always uses Grok (budget protection)"
             
-            print(f"🕵️ Scout: {decision} ({confidence}%) - {search_type} - {reason[:50]}...")
+            logger.info("Scout: %s (%d%%) - %s - %s...", decision, confidence, search_type, reason[:50])
             
             return response_data
             
         except json.JSONDecodeError as e:
-            print(f"❌ Scout JSON parse error: {e}")
+            logger.error("Scout JSON parse error: %s", e)
             return self._default_response(f"JSON parse error: {str(e)}")
         except Exception as e:
-            print(f"❌ Scout error: {e}")
+            logger.error("Scout error: %s", e)
             return self._default_response(str(e))
     
     def _default_response(self, error: str) -> dict:

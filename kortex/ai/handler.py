@@ -1,10 +1,13 @@
 """AI response handling for Kortex Agent"""
 
 import json
+import logging
 from datetime import datetime
 from google import genai
 from google.genai import types
 from openai import OpenAI
+
+logger = logging.getLogger(__name__)
 
 from ..data import load_all_context
 from ..tools import TOOL_FUNCTIONS, TOOL_DEFINITIONS, GEMINI_TOOL_DEFINITIONS
@@ -382,7 +385,7 @@ def _get_gemini_response(message, history, model, api_key, system_prompt, files=
                         "args": args
                     })
     except Exception as e:
-        print(f"Error parsing Gemini response: {e}")
+        logger.error("Error parsing Gemini response: %s", e)
         return {"response": None, "function_calls": None, "error": str(e)}
     
     return {

@@ -7,9 +7,12 @@ import threading
 import time
 import os
 import json
+import logging
 from openai import OpenAI
 from pathlib import Path
 from kortex.config import load_config
+
+logger = logging.getLogger(__name__)
 
 
 class TitleFixerService:
@@ -29,19 +32,19 @@ class TitleFixerService:
     def start(self):
         """Start the background service"""
         if self.running:
-            print("⚠️ Title fixer already running")
+            logger.warning("Title fixer already running")
             return
         
         self.running = True
         self.thread = threading.Thread(target=self._run_loop, daemon=True)
         self.thread.start()
-        print(f"✅ Title fixer started (runs every {self.interval_hours} hours)")
+        logger.info("Title fixer started (runs every %d hours)", self.interval_hours)
     
     def stop(self):
         """Stop the background service"""
         self.running = False
         if self.thread:
-            print("🛑 Title fixer stopped")
+            logger.info("Title fixer stopped")
     
     def _run_loop(self):
         """Main loop that runs periodically"""
@@ -57,14 +60,14 @@ class TitleFixerService:
     def _fix_titles(self):
         """Fix all conversations with 'New Chat' title"""
         try:
-            print("\n🔧 Running title fixer...")
+            logger.info("Running title fixer...")
             
             # Load config
             config = load_config()
             api_key = config['api_keys'].get('openrouter')
             
             if not api_key:
-                print("⚠️ No OpenRouter API key found, skipping title fix")
+                logger.warning("No OpenRouter API key found, skipping title fix")
                 return
             
             or_client = OpenAI(
@@ -133,7 +136,7 @@ Respond with ONLY the title in Finnish, no quotes or extra text. Be specific and
                         with open(conv_file, 'w', encoding='utf-8') as f:
                             json.dump(conv_data, f, ensure_ascii=False, indent=2)
                         
-                        print(f"  ✅ Fixed: {conv_file.name} → '{new_title}'")
+                        logger.info("Fixed: %s → '%s'", conv_file.name, new_title)
                         fixed_count += 1
                         
                 except Exception as e:
@@ -141,12 +144,12 @@ Respond with ONLY the title in Finnish, no quotes or extra text. Be specific and
                     pass
             
             if fixed_count > 0:
-                print(f"✅ Title fixer completed: {fixed_count} titles fixed")
+                logger.info("Title fixer completed: %d titles fixed", fixed_count)
             else:
-                print("✓ Title fixer: All titles OK")
+                logger.info("Title fixer: All titles OK")
                 
         except Exception as e:
-            print(f"❌ Title fixer error: {e}")
+            logger.error("Title fixer error: %s", e)
 
 
 # Singleton instance

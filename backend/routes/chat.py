@@ -2,8 +2,11 @@
 Chat routes - Main AI conversation endpoint
 """
 
+import logging
 from flask import request, jsonify
 import asyncio
+
+logger = logging.getLogger(__name__)
 
 from kortex import config, data
 from kortex.ai import handler as ai_handler
@@ -76,9 +79,9 @@ def register_chat_routes(app):
         scout_result = None
         try:
             scout_result = await scout_analyze(message, history)
-            print(f"🕵️ Scout background: {scout_result['decision']} ({scout_result['confidence']}%)")
+            logger.info("Scout background: %s (%s%%)", scout_result['decision'], scout_result['confidence'])
         except Exception as e:
-            print(f"⚠️ Scout background analysis failed: {e}")
+            logger.warning("Scout background analysis failed: %s", e)
         
         # Run Chat and Scribe SEQUENTIALLY
         loop = asyncio.get_event_loop()
@@ -143,12 +146,12 @@ Respond with ONLY the title, no quotes or extra text. Be specific and descriptiv
                 
                 if title_response.choices[0].message.content:
                     title = title_response.choices[0].message.content.strip()[:50]
-                    print(f"📝 Generated title: '{title}'")
+                    logger.info("Generated title: '%s'", title)
                 else:
                     title = message[:40] + "..." if len(message) > 40 else message
                     
             except Exception as e:
-                print(f"⚠️ Failed to generate title: {e}")
+                logger.warning("Failed to generate title: %s", e)
                 title = message[:40] + "..." if len(message) > 40 else message
             
         data.save_conversation(chat_id, new_history, title)
@@ -196,7 +199,7 @@ DO NOT SAY:
                     chat_result['response'] = "Päivitin tiedot. Miten voin auttaa?"
                     
             except Exception as e:
-                print(f"⚠️ Follow-up generation failed: {e}")
+                logger.warning("Follow-up generation failed: %s", e)
                 chat_result['response'] = "Tiedot päivitetty! Onko muuta?"
 
         # Combine results
@@ -333,7 +336,7 @@ Respond with ONLY the title."""
                 if title_response.choices[0].message.content:
                     title = title_response.choices[0].message.content.strip()[:50]
             except Exception as e:
-                print(f"⚠️ Title generation failed: {e}")
+                logger.warning("Title generation failed: %s", e)
                 title = f"🔍 {message[:35]}..."
         
         data.save_conversation(chat_id, new_history, title)

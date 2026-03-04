@@ -2,6 +2,7 @@
 Council routes - Elite, Hive, and Mega council modes
 """
 
+import logging
 from flask import request, jsonify
 import time
 import random
@@ -10,6 +11,8 @@ from kortex import config, data
 
 
 from backend.errors import handle_async_exceptions
+
+logger = logging.getLogger(__name__)
 
 # ... imports ...
 
@@ -39,7 +42,7 @@ Respond with ONLY the title in Finnish, no quotes or extra text. Be specific and
             if title_response.choices[0].message.content:
                 return title_response.choices[0].message.content.strip()[:50]
         except Exception as e:
-            print(f"⚠️ Failed to generate title: {e}")
+            logger.warning("Failed to generate title: %s", e)
         
         return message[:40] + "..." if len(message) > 40 else message
 
