@@ -5,6 +5,28 @@ All notable changes to Kortex Agent will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0-rc1] - 2026-03-04
+
+### Added
+- **Baseline non-local threat model** — Added a formal threat model section to `SECURITY.md` (assets, trust boundaries, assumptions, risks, required controls).
+- **Release smoke test script** — Added `scripts/docker_release_smoke.sh` for local Docker release validation (health endpoint + localhost-only bindings).
+
+### Changed
+- **API contract standardization** — Standardized route success envelopes and frontend envelope parsing across chat/config/data/history flows, with expanded route schema tests.
+- **Reliability and observability hardening**:
+  - Replaced remaining `print()` usage with structured logging across backend/AI and CLI helper scripts.
+  - Improved centralized error handling to log full debug context while keeping user-facing errors sanitized by default.
+  - Improved background task failure visibility in title-fixer and scribe paths.
+- **Release process hardening**:
+  - CI `Run Tests` now includes frontend lint/build, backend tests with timeout + stability re-run, and Bandit security scan.
+  - Release preflight now includes deterministic test checks and optional Docker smoke validation.
+  - Release checklist formalized for reproducible tag/release flow.
+
+### Fixed
+- **Frontend API parsing edge cases** — Harmonized fallback handling for envelope-unwrapped responses in history/pin/config/data paths.
+
+---
+
 ## [1.0.0-beta2] - 2026-03-04
 
 ### Fixed
