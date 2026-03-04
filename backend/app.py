@@ -16,6 +16,15 @@ from backend.routes import register_all_routes
 from backend.errors import register_error_handlers
 
 
+def resolve_bind_host() -> str:
+    """Resolve backend bind host.
+
+    Security default is localhost-only. Set KORTEX_BIND_HOST explicitly
+    (e.g. 0.0.0.0) only for trusted local container networking.
+    """
+    return os.getenv('KORTEX_BIND_HOST', '127.0.0.1')
+
+
 def create_app():
     """Application factory for Flask app.
     
@@ -70,5 +79,10 @@ if __name__ == '__main__':
     debug_mode = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
     if debug_mode:
         print("⚠️  WARNING: Debug mode is ENABLED")
-    
-    app.run(host='0.0.0.0', port=5001, debug=debug_mode) # nosec B104
+
+    bind_host = resolve_bind_host()
+    if bind_host != '127.0.0.1':
+        print(f"⚠️  WARNING: Backend binding to {bind_host}.")
+        print("⚠️  Kortex is intended for local use only. Do not expose to public network.")
+
+    app.run(host=bind_host, port=5001, debug=debug_mode) # nosec B104

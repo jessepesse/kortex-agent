@@ -34,5 +34,13 @@ We take the security of Kortex Agent seriously. If you have discovered a securit
 *   Keep Kortex Agent updated to the latest version.
 *   Do not share your `.env` file or `config.json` containing API keys.
 *   Run Kortex Agent in a secure environment (e.g., behind a firewall, VPN, or on localhost).
+*   Kortex is intended for local-only use. Keep backend/frontend bound to localhost.
+*   Do not expose Kortex API directly to the public internet.
+
+## Network Exposure Policy
+
+By default, backend binds to `127.0.0.1` (localhost only).
+
+If you override binding (for example `KORTEX_BIND_HOST=0.0.0.0` in Docker), you are responsible for keeping host-level bindings local-only and adding proper perimeter controls. Default `docker-compose.yml` publishes ports only on `127.0.0.1`.
 
 Thank you for helping keep Kortex Agent secure!

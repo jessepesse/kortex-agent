@@ -158,6 +158,13 @@ The app will open at `http://localhost:3000`.
 
 **Note:** On first run, Kortex automatically creates the `data/` folder with default empty data files.
 
+### Security Model (Important)
+
+- Kortex is designed for **local use only**.
+- Backend default bind is `127.0.0.1` (localhost-only).
+- Do **not** expose Kortex directly to public internet.
+- If you set `KORTEX_BIND_HOST=0.0.0.0` for container networking, keep host port bindings on localhost only (as in `docker-compose.yml`).
+
 ### Docker (Alternative)
 
 ```bash
