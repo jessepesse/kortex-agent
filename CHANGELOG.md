@@ -5,19 +5,22 @@ All notable changes to Kortex Agent will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.0-alpha6-hotfix2] - 2026-02-28
-
-### Fixed
-- **setup.py** — Updated dependency constraints (`flask>=3.1.3`, `flask-cors>=6.0.2`, `google-genai>=1.0.0`, `openai>=2.21.0`) to resolve 6 Flask/Flask-CORS security advisories relating to CORS handling, regex, log injection, and session vary headers.
-
----
-
 ## [1.0.0-alpha7] - 2026-03-04
 
 ### Changed
 #### Model Updates
 - **Google:** Replaced `gemini-2.5-flash` with `gemini-3-flash-preview` across the system core and frontend UI.
 - **Google:** Replaced `gemini-2.5-flash-lite` with `gemini-3.1-flash-lite-preview` for Scout intelligence, titles, and background data management.
+
+### Fixed
+- **pypdf** 6.7.4 → 6.7.5 — Fixes ASCIIHexDecode streams RAM exhaustion vulnerability (Dependabot issue #47)
+
+---
+
+## [1.0.0-alpha6-hotfix2] - 2026-02-28
+
+### Fixed
+- **setup.py** — Updated dependency constraints (`flask>=3.1.3`, `flask-cors>=6.0.2`, `google-genai>=1.0.0`, `openai>=2.21.0`) to resolve 6 Flask/Flask-CORS security advisories relating to CORS handling, regex, log injection, and session vary headers.
 
 ---
 
