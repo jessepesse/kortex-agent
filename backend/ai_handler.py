@@ -5,10 +5,13 @@ Handles all AI interactions, function calling, and data management
 """
 
 import json
+import logging
 from google import genai
 from google.genai import types
 from openai import OpenAI
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 # Configuration
 DATA_DIR = Path(__file__).parent.parent / "data"
@@ -41,7 +44,7 @@ def load_json_file(filename):
             json.dump(default_data, f, indent=2)
         return default_data
     except json.JSONDecodeError:
-        print(f"Warning: Could not parse {filename}. Using empty dict.")
+        logger.warning("Could not parse %s. Using empty dict.", filename)
         return {}
 
 

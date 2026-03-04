@@ -1,8 +1,11 @@
 import asyncio
 import json
+import logging
 import os
 from openai import AsyncOpenAI
 from ..config import load_config
+
+logger = logging.getLogger(__name__)
 
 class CouncilService:
     def __init__(self):
@@ -94,7 +97,7 @@ CONTEXT:
         return prompt
 
     async def _query_gemini(self, message, history, context):
-        print("✨ Querying Gemini via OpenRouter...")
+        logger.info("Querying Gemini via OpenRouter...")
         try:
             system_prompt = self._build_system_prompt(context)
             messages = [{"role": "system", "content": system_prompt}]
@@ -105,18 +108,17 @@ CONTEXT:
                 messages=messages
             )
             
-            print("✅ Gemini responded")
+            logger.info("Gemini responded")
             return response.choices[0].message.content
         except Exception as e:
-            print(f"❌ Gemini failed: {e}")
+            logger.error("Gemini failed: %s", e)
             return f"Gemini encountered an error: {str(e)}"
 
     async def _query_gpt52(self, message, history, context):
-        print("✨ Querying GPT-5.2 via OpenRouter...")
+        logger.info("Querying GPT-5.2 via OpenRouter...")
         try:
             system_prompt = self._build_system_prompt(context)
             messages = [{"role": "system", "content": system_prompt}]
-            # Add simplified history (last 5 messages)
             for msg in history[-5:]:
                 messages.append({"role": msg.get("role", "user"), "content": msg.get("content", "")})
             messages.append({"role": "user", "content": message})
@@ -126,14 +128,14 @@ CONTEXT:
                 messages=messages,
                 extra_body={"reasoning": {"enabled": True}}
             )
-            print("✅ GPT-5.2 responded")
+            logger.info("GPT-5.2 responded")
             return response.choices[0].message.content
         except Exception as e:
-            print(f"❌ GPT-5.2 failed: {e}")
+            logger.error("GPT-5.2 failed: %s", e)
             raise e
 
     async def _query_claude(self, message, history, context):
-        print("✨ Querying Claude via OpenRouter...")
+        logger.info("Querying Claude via OpenRouter...")
         try:
             system_prompt = self._build_system_prompt(context)
             messages = [{"role": "system", "content": system_prompt}]
@@ -148,10 +150,10 @@ CONTEXT:
                 model="anthropic/claude-haiku-4-5",
                 messages=messages
             )
-            print("✅ Claude responded")
+            logger.info("Claude responded")
             return response.choices[0].message.content
         except Exception as e:
-            print(f"❌ Claude failed: {e}")
+            logger.error("Claude failed: %s", e)
             raise e
 
     async def _get_peer_reviews(self, valid_responses, members, original_tasks):
@@ -161,7 +163,7 @@ CONTEXT:
         """
         import random
         
-        print("🔍 Starting peer review phase...")
+        logger.info("Starting peer review phase...")
         
         # Create anonymized response list (shuffle and label as Response A, B, C)
         anonymized = []
@@ -206,7 +208,7 @@ CONTEXT:
                     "review": review
                 })
         
-        print(f"✅ Collected {len(peer_reviews)} peer reviews")
+        logger.info("Collected %d peer reviews", len(peer_reviews))
         return peer_reviews
 
     async def _get_gemini_review(self, anonymized_responses):
@@ -230,7 +232,7 @@ Be concise (2-3 sentences per response). Do not reveal your identity."""
             )
             return response.choices[0].message.content
         except Exception as e:
-            print(f"❌ Gemini review failed: {e}")
+            logger.error("Gemini review failed: %s", e)
             return None
 
     async def _get_gpt52_review(self, anonymized_responses):
@@ -256,7 +258,7 @@ Be concise (2-3 sentences per response). Do not reveal your identity."""
             )
             return response.choices[0].message.content
         except Exception as e:
-            print(f"❌ OpenAI review failed: {e}")
+            logger.error("OpenAI review failed: %s", e)
             return None
 
     async def _get_claude_review(self, anonymized_responses):
@@ -281,7 +283,7 @@ Be concise (2-3 sentences per response). Do not reveal your identity."""
             )
             return response.choices[0].message.content
         except Exception as e:
-            print(f"❌ Claude review failed: {e}")
+            logger.error("Claude review failed: %s", e)
             return None
 
     async def _synthesize_chairman(self, message, valid_responses, peer_reviews, context):

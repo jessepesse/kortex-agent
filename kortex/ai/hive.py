@@ -5,8 +5,11 @@ Uses OpenRouter API for DeepSeek access
 
 import asyncio
 import json
+import logging
 from openai import AsyncOpenAI
 from ..config import load_config
+
+logger = logging.getLogger(__name__)
 
 
 class HiveService:
@@ -210,7 +213,7 @@ Stay true to your role as '{persona_name}'. Provide a focused, actionable perspe
     
     async def _query_deepseek_persona(self, persona_name, message, history, context):
         """Query a single DeepSeek persona"""
-        print(f"✨ Querying {persona_name}...")
+        logger.info("Querying %s...", persona_name)
         try:
             system_prompt = self._build_persona_prompt(persona_name, context)
             
@@ -234,25 +237,25 @@ Stay true to your role as '{persona_name}'. Provide a focused, actionable perspe
                         messages=messages,
                         extra_body={"reasoning": {"enabled": True}}
                     )
-                    print(f"✅ {persona_name} responded")
+                    logger.info("%s responded", persona_name)
                     return response.choices[0].message.content
                 except Exception as e:
                     if attempt < max_retries - 1:
-                        print(f"⚠️ {persona_name} attempt {attempt + 1} failed, retrying...")
+                        logger.warning("%s attempt %d failed, retrying...", persona_name, attempt + 1)
                         await asyncio.sleep(1)  # Wait before retry
                     else:
-                        print(f"❌ {persona_name} failed after {max_retries} attempts: {e}")
+                        logger.error("%s failed after %d attempts: %s", persona_name, max_retries, e)
                         raise e
             
         except Exception as e:
-            print(f"❌ {persona_name} failed: {e}")
+            logger.error("%s failed: %s", persona_name, e)
             raise e
     
     async def _get_peer_reviews(self, valid_responses, persona_names):
         """Anonymous peer review phase"""
         import random
         
-        print("🔍 Starting anonymous peer review...")
+        logger.info("Starting anonymous peer review...")
         
         # Anonymize responses
         anonymized = []
@@ -284,7 +287,7 @@ Stay true to your role as '{persona_name}'. Provide a focused, actionable perspe
                     "review": review
                 })
         
-        print(f"✅ Collected {len(peer_reviews)} peer reviews")
+        logger.info("Collected %d peer reviews", len(peer_reviews))
         return peer_reviews
     
     async def _get_deepseek_review(self, persona_name, anonymized_responses):
@@ -312,7 +315,7 @@ Be concise (2-3 sentences per response). Do not reveal your identity."""
             return response.choices[0].message.content
             
         except Exception as e:
-            print(f"❌ Review failed: {e}")
+            logger.error("Review failed: %s", e)
             return None
     
     async def _synthesize_chairman(self, message, valid_responses, peer_reviews, context):

@@ -1,9 +1,12 @@
 """Web Search Pipeline - Scout -> Specialist -> Synthesizer"""
 
 import asyncio
+import logging
 from openai import AsyncOpenAI
 from ..config import load_config
 from .scout import get_scout_service
+
+logger = logging.getLogger(__name__)
 
 
 class WebSearchService:
@@ -52,11 +55,11 @@ class WebSearchService:
         Returns:
             dict with response, search_type, sources, scout_info, etc.
         """
-        print("🔍 Web Search Pipeline (Scout-powered) starting...")
+        logger.info("Web Search Pipeline (Scout-powered) starting...")
         
         # Stage 1: Scout analysis
         scout_result = await self.scout.analyze(message, history)
-        print(f"🕵️ Scout: {scout_result['decision']} ({scout_result['confidence']}%) - {scout_result['search_type']}")
+        logger.info("Scout: %s (%s%%) - %s", scout_result['decision'], scout_result['confidence'], scout_result['search_type'])
         
         # Determine which model to use
         if force_model:
@@ -79,11 +82,11 @@ class WebSearchService:
             scout_result['used_model'] = search_model
         
         search_type = scout_result['search_type']
-        print(f"📍 Using: {search_model} (Scout recommended: {scout_result['recommended_model']})")
+        logger.info("Using: %s (Scout recommended: %s)", search_model, scout_result['recommended_model'])
         
         # Stage 2: Specialist search
         search_result = await self._specialist_search(message, search_model)
-        print(f"📥 Specialist returned {len(search_result.get('content', ''))} chars")
+        logger.info("Specialist returned %d chars", len(search_result.get('content', '')))
         
         # Stage 3: Synthesizer - user's model with context
         final_response = await self._synthesize_response(
@@ -131,7 +134,7 @@ class WebSearchService:
             else:
                 return await self._perplexity_search(message)
         except Exception as e:
-            print(f"❌ Specialist search failed: {e}")
+            logger.error("Specialist search failed: %s", e)
             return {
                 "content": f"Search failed: {str(e)}",
                 "sources": [],
@@ -142,7 +145,7 @@ class WebSearchService:
         """
         Search using Grok-4.1-fast with native X + web search.
         """
-        print("🐦 Grok-4.1-fast: Searching X and web...")
+        logger.info("Grok-4.1-fast: Searching X and web...")
         
         response = await self.openrouter_client.chat.completions.create(
             model=self.GROK_MODEL,
@@ -177,7 +180,7 @@ Be thorough but concise."""
         """
         Search using Perplexity Sonar Pro with reasoning.
         """
-        print("🔬 Perplexity Sonar Pro: Deep research with reasoning...")
+        logger.info("Perplexity Sonar Pro: Deep research with reasoning...")
         
         response = await self.openrouter_client.chat.completions.create(
             model=self.PERPLEXITY_MODEL,
@@ -240,7 +243,7 @@ Focus on accuracy and cite your sources."""
         """
         Stage 3: Synthesizer - User's model generates final response with search context.
         """
-        print(f"✨ Synthesizer ({user_provider}/{user_model}): Generating response...")
+        logger.info("Synthesizer (%s/%s): Generating response...", user_provider, user_model)
         
         # Build enhanced message with search results
         search_context = f"""I found the following information from web search:

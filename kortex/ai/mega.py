@@ -4,11 +4,14 @@ Mega Council - Ultimate decision system combining Elite and Hive
 
 import asyncio
 import json
+import logging
 from openai import AsyncOpenAI
 
 from .council import CouncilService
 from .hive import HiveService
 from ..config import load_config
+
+logger = logging.getLogger(__name__)
 
 
 class MegaCouncilService:
@@ -22,7 +25,7 @@ class MegaCouncilService:
     async def get_mega_response(self, message, history, context):
         """Run both Elite and Hive, then synthesize with Mega Chairman"""
         
-        print("🔥 MEGA COUNCIL ACTIVATED")
+        logger.info("MEGA COUNCIL ACTIVATED")
         
         # Run Elite and Hive in parallel
         elite_task = self._run_elite_with_voting(message, history, context)
@@ -47,7 +50,7 @@ class MegaCouncilService:
     
     async def _run_elite_with_voting(self, message, history, context):
         """Elite Council with peer review voting"""
-        print("🏛️ Elite Council: Starting deliberation...")
+        logger.info("Elite Council: Starting deliberation...")
         
         # Get all Elite responses
         elite_full = await self.elite_service.get_council_response(message, history, context)
@@ -57,7 +60,7 @@ class MegaCouncilService:
             return {"winner_model": "No Elite responses", "winner_response": "", "votes": {}, "all_responses": []}
         
         # Peer review voting
-        print("🏛️ Elite: Peer review voting...")
+        logger.info("Elite: Peer review voting...")
         votes = await self._elite_voting(responses, message)
         
         # Find winner - handle empty votes dict
@@ -74,7 +77,7 @@ class MegaCouncilService:
             refined = await self._refine_answer(winner_model, winner_response['response'], message, context, "elite")
             winner_response['response'] = refined
         
-        print(f"🏆 Elite Winner: {winner_model} ({votes.get(winner_model, 0)} votes)")
+        logger.info("Elite Winner: %s (%d votes)", winner_model, votes.get(winner_model, 0))
         
         return {
             "winner_model": winner_model,
@@ -85,7 +88,7 @@ class MegaCouncilService:
     
     async def _run_hive_with_voting(self, message, history, context):
         """Hive Council with persona voting"""
-        print("🐝 Hive Council: Starting deliberation...")
+        logger.info("Hive Council: Starting deliberation...")
         
         # Get all Hive responses
         hive_full = await self.hive_service.get_hive_response(message, history, context)
@@ -95,7 +98,7 @@ class MegaCouncilService:
             return {"winner_model": "No Hive responses", "winner_response": "", "votes": {}, "all_responses": []}
         
         # Persona voting
-        print("🐝 Hive: Persona voting...")
+        logger.info("Hive: Persona voting...")
         votes = await self._hive_voting(responses, message)
         
         # Find winner - handle empty votes dict
@@ -112,7 +115,7 @@ class MegaCouncilService:
             refined = await self._refine_answer(winner_persona, winner_response['response'], message, context, "hive")
             winner_response['response'] = refined
         
-        print(f"🏆 Hive Winner: {winner_persona} ({votes.get(winner_persona, 0)} votes)")
+        logger.info("Hive Winner: %s (%d votes)", winner_persona, votes.get(winner_persona, 0))
         
         return {
             "winner_model": winner_persona,
@@ -223,7 +226,7 @@ Your vote (single letter only):"""
             vote = response.choices[0].message.content.strip()[:1]
             return vote
         except Exception as e:
-            print(f"❌ Elite vote failed for {model_name}: {e}")
+            logger.error("Elite vote failed for %s: %s", model_name, e)
             return None
     
     async def _get_hive_vote(self, persona_name, anonymized_responses, question):
@@ -252,7 +255,7 @@ Your vote:"""
             vote = response.choices[0].message.content.strip()[:1]
             return vote
         except Exception as e:
-            print(f"❌ Hive vote failed for {persona_name}: {e}")
+            logger.error("Hive vote failed for %s: %s", persona_name, e)
             return None
     
     async def _refine_answer(self, model_name, original_response, question, context, council_type):
@@ -304,7 +307,7 @@ Refined response:"""
                 return response.choices[0].message.content
                 
         except Exception as e:
-            print(f"❌ Refinement failed: {e}")
+            logger.error("Refinement failed: %s", e)
             return original_response  # Return original if refinement fails
     
     async def _mega_chairman_synthesis(self, question, elite_result, hive_result, context):
@@ -313,7 +316,7 @@ Refined response:"""
         # Get mega chairman model from config
         mega_chairman_model = self.config.get('mega_chairman_model', 'gemini-3-pro-preview')
         
-        print(f"👑 Mega Chairman ({mega_chairman_model}): Synthesizing...")
+        logger.info("Mega Chairman (%s): Synthesizing...", mega_chairman_model)
         
         prompt = f"""You are the MEGA CHAIRMAN - the ultimate arbiter.
 
