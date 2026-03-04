@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { getAllData, updateDataFile, getBackupConversations, downloadBackup, validateBackup, restoreBackup } from '../services/api';
 import './SettingsModal.css';
 
@@ -20,20 +20,12 @@ const SettingsModal = ({ isOpen, onClose }) => {
     const [activeTab, setActiveTab] = useState('data'); // 'data' or 'backup'
 
     useEffect(() => {
-        if (isOpen) {
-            loadData();
-            loadModelSettings();
-            loadConversations();
-        }
-    }, [isOpen]);
-
-    useEffect(() => {
         if (dataFiles[selectedFile]) {
             setJsonContent(JSON.stringify(dataFiles[selectedFile], null, 2));
         }
     }, [selectedFile, dataFiles]);
 
-    const loadData = async () => {
+    const loadData = useCallback(async () => {
         try {
             const data = await getAllData();
             setDataFiles(data);
@@ -43,9 +35,9 @@ const SettingsModal = ({ isOpen, onClose }) => {
         } catch (error) {
             console.error('Failed to load data:', error);
         }
-    };
+    }, [selectedFile]);
 
-    const loadConversations = async () => {
+    const loadConversations = useCallback(async () => {
         try {
             const result = await getBackupConversations();
             setConversations(result.conversations || []);
@@ -54,9 +46,9 @@ const SettingsModal = ({ isOpen, onClose }) => {
         } catch (error) {
             console.error('Failed to load conversations:', error);
         }
-    };
+    }, []);
 
-    const loadModelSettings = async () => {
+    const loadModelSettings = useCallback(async () => {
         try {
             const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/config`);
             const config = await response.json();
@@ -69,7 +61,15 @@ const SettingsModal = ({ isOpen, onClose }) => {
         } catch (error) {
             console.error('Failed to load model settings:', error);
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        if (isOpen) {
+            loadData();
+            loadModelSettings();
+            loadConversations();
+        }
+    }, [isOpen, loadData, loadModelSettings, loadConversations]);
 
     const handleModelChange = async (e) => {
         const value = e.target.value;

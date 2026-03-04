@@ -2,7 +2,7 @@
  * useSettings - Custom hook for settings state management
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getAllData, updateDataFile, getBackupConversations } from '../../../services/api';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
@@ -18,7 +18,7 @@ export function useSettings(isOpen) {
     const [conversations, setConversations] = useState([]);
     const [selectedConversations, setSelectedConversations] = useState([]);
 
-    async function loadData() {
+    const loadData = useCallback(async () => {
         try {
             const data = await getAllData();
             setDataFiles(data);
@@ -28,9 +28,9 @@ export function useSettings(isOpen) {
         } catch (error) {
             console.error('Failed to load data:', error);
         }
-    }
+    }, [selectedFile]);
 
-    async function loadConversations() {
+    const loadConversations = useCallback(async () => {
         try {
             const result = await getBackupConversations();
             setConversations(result.conversations || []);
@@ -38,9 +38,9 @@ export function useSettings(isOpen) {
         } catch (error) {
             console.error('Failed to load conversations:', error);
         }
-    }
+    }, []);
 
-    async function loadModelSettings() {
+    const loadModelSettings = useCallback(async () => {
         try {
             const response = await fetch(`${API_URL}/api/config`);
             const config = await response.json();
@@ -51,7 +51,7 @@ export function useSettings(isOpen) {
         } catch (error) {
             console.error('Failed to load model settings:', error);
         }
-    }
+    }, []);
 
     // Load data when modal opens
     useEffect(() => {
@@ -60,7 +60,7 @@ export function useSettings(isOpen) {
             loadModelSettings();
             loadConversations();
         }
-    }, [isOpen]);
+    }, [isOpen, loadData, loadModelSettings, loadConversations]);
 
     // Update JSON content when file changes
     useEffect(() => {
