@@ -47,10 +47,10 @@ def temp_config_file(tmp_path, monkeypatch):
     default_config = {
         "api_keys": {"openai": "", "google": "", "anthropic": ""},
         "default_provider": "google",
-        "default_model": "gemini-2.5-flash",
+        "default_model": "gemini-3-flash-preview",
         "models": {
             "openai": ["gpt-5", "gpt-5-mini"],
-            "google": ["gemini-2.5-flash", "gemini-2.5-flash-lite"],
+            "google": ["gemini-3-flash-preview", "gemini-3.1-flash-lite-preview"],
             "anthropic": ["claude-haiku-4-5"]
         }
     }

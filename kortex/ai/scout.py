@@ -15,7 +15,7 @@ class ScoutService:
     Also recommends search_type: NEWS (Grok) or RESEARCH (Perplexity)
     """
     
-    SCOUT_MODEL = "google/gemini-2.5-flash-lite"
+    SCOUT_MODEL = "google/gemini-3.1-flash-lite-preview"
     
     SCOUT_PROMPT = """You are Scout, an intelligent classifier that decides if a user question needs fresh web data.
 

@@ -91,7 +91,7 @@ Based on the conversation above, update any data files if new facts were establi
             
             def make_request():
                 return self.client.chat.completions.create(
-                    model="google/gemini-2.5-flash-lite",
+                    model="google/gemini-3.1-flash-lite-preview",
                     messages=messages,
                     tools=self.tools,
                     tool_choice="auto"

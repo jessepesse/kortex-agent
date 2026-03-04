@@ -88,7 +88,7 @@ Respond with ONLY the title in Finnish, no quotes or extra text. Be specific and
             
             try:
                 title_response = or_client.chat.completions.create(
-                    model="google/gemini-2.5-flash-lite",
+                    model="google/gemini-3.1-flash-lite-preview",
                     messages=[{"role": "user", "content": title_prompt}],
                     max_tokens=50
                 )

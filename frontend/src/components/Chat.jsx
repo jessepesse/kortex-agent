@@ -24,7 +24,7 @@ const Chat = ({ messages, onSendMessage, isLoading, isSidebarOpen, contextData, 
     const [thinkingEnabled, setThinkingEnabled] = useState(false);
     const [supportsThinking, setSupportsThinking] = useState(false);
     const [webSearchEnabled, setWebSearchEnabled] = useState(false);
-    
+
     // Scout state
     const [scoutResult, setScoutResult] = useState(null);
     const [scoutLoading, setScoutLoading] = useState(false);
@@ -42,12 +42,12 @@ const Chat = ({ messages, onSendMessage, isLoading, isSidebarOpen, contextData, 
             types: ['image/', 'video/', 'audio/', 'application/pdf', 'text/plain', 'text/markdown'],
             description: 'Images, Video, Audio, PDF, Text'
         },
-        'gemini-2.5-flash': {
+        'gemini-3-flash-preview': {
             accept: 'image/*,video/*,audio/*,.txt,.md',
             types: ['image/', 'video/', 'audio/', 'text/plain', 'text/markdown'],
             description: 'Images, Video, Audio, Text'
         },
-        'gemini-2.5-flash-lite': {
+        'gemini-3.1-flash-lite-preview': {
             accept: 'image/*,video/*,audio/*,.pdf,.txt,.md',
             types: ['image/', 'video/', 'audio/', 'application/pdf', 'text/plain', 'text/markdown'],
             description: 'Images, Video, Audio, PDF, Text'
@@ -116,17 +116,17 @@ const Chat = ({ messages, onSendMessage, isLoading, isSidebarOpen, contextData, 
                 const settings = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/config`).then(r => r.json());
                 setCurrentModel(settings.default_model);
                 setCurrentProvider(settings.default_provider);
-                
+
                 // Check if current model supports thinking
                 const provider = settings.default_provider;
-                const modelData = settings.providers?.[provider]?.find(m => 
+                const modelData = settings.providers?.[provider]?.find(m =>
                     (typeof m === 'object' ? m.id : m) === settings.default_model
                 );
                 setSupportsThinking(typeof modelData === 'object' && modelData.thinking === true);
             } catch (error) {
                 console.error('Failed to load settings:', error);
                 // Fallback
-                setCurrentModel('gemini-2.5-flash');
+                setCurrentModel('gemini-3-flash-preview');
                 setCurrentProvider('google');
                 setSupportsThinking(false);
             }
@@ -164,7 +164,7 @@ const Chat = ({ messages, onSendMessage, isLoading, isSidebarOpen, contextData, 
     }, [input]);
 
     const getCurrentModelSupport = () => {
-        return MODEL_FILE_SUPPORT[currentModel] || MODEL_FILE_SUPPORT['gemini-2.5-flash'];
+        return MODEL_FILE_SUPPORT[currentModel] || MODEL_FILE_SUPPORT['gemini-3-flash-preview'];
     };
 
     const handleFileSelect = (e) => {
@@ -236,19 +236,19 @@ const Chat = ({ messages, onSendMessage, isLoading, isSidebarOpen, contextData, 
             } else if (councilMode === 'mega') {
                 message = `/mega ${message}`;
             }
-            
+
             // Build reasoning config if thinking is enabled
-            const reasoningConfig = thinkingEnabled && supportsThinking 
-                ? { enabled: true } 
+            const reasoningConfig = thinkingEnabled && supportsThinking
+                ? { enabled: true }
                 : null;
-            
+
             // If web search is enabled, run Scout first to get recommendation
             if (webSearchEnabled && !councilMode) {
                 setScoutLoading(true);
                 try {
                     const scout = await scoutAnalyze(message, messages);
                     console.log('🕵️ Scout result:', scout);
-                    
+
                     if (scout.decision === 'NO_SEARCH') {
                         // No search needed - proceed with normal chat (no web search)
                         setScoutLoading(false);
@@ -285,7 +285,7 @@ const Chat = ({ messages, onSendMessage, isLoading, isSidebarOpen, contextData, 
                     // Fall through to regular web search
                 }
             }
-            
+
             onSendMessage(message, attachedFiles, reasoningConfig, webSearchEnabled);
             setInput('');
             setCouncilMode(null); // Reset council mode after sending
@@ -297,47 +297,47 @@ const Chat = ({ messages, onSendMessage, isLoading, isSidebarOpen, contextData, 
             setAttachedFiles([]);
         }
     };
-    
+
     // Scout action handlers
     const handleScoutSearchWithGrok = () => {
         if (pendingScoutMessage) {
             onSendMessage(
-                pendingScoutMessage.message, 
-                pendingScoutMessage.files, 
-                pendingScoutMessage.reasoningConfig, 
+                pendingScoutMessage.message,
+                pendingScoutMessage.files,
+                pendingScoutMessage.reasoningConfig,
                 true, // webSearchEnabled
                 'grok' // forceSearchModel
             );
             clearScoutState();
         }
     };
-    
+
     const handleScoutSearchWithPerplexity = () => {
         if (pendingScoutMessage) {
             onSendMessage(
-                pendingScoutMessage.message, 
-                pendingScoutMessage.files, 
-                pendingScoutMessage.reasoningConfig, 
+                pendingScoutMessage.message,
+                pendingScoutMessage.files,
+                pendingScoutMessage.reasoningConfig,
                 true, // webSearchEnabled
                 'perplexity' // forceSearchModel
             );
             clearScoutState();
         }
     };
-    
+
     const handleScoutSkip = () => {
         if (pendingScoutMessage) {
             // Send without web search
             onSendMessage(
-                pendingScoutMessage.message, 
-                pendingScoutMessage.files, 
-                pendingScoutMessage.reasoningConfig, 
+                pendingScoutMessage.message,
+                pendingScoutMessage.files,
+                pendingScoutMessage.reasoningConfig,
                 false // webSearchEnabled = false (skip search)
             );
             clearScoutState();
         }
     };
-    
+
     const clearScoutState = () => {
         setScoutResult(null);
         setPendingScoutMessage(null);
@@ -419,7 +419,7 @@ const Chat = ({ messages, onSendMessage, isLoading, isSidebarOpen, contextData, 
             {scoutResult && pendingScoutMessage && (() => {
                 console.log('🎴 Rendering ScoutCard:', { scoutResult, pendingScoutMessage });
                 return (
-                    <ScoutCard 
+                    <ScoutCard
                         scoutResult={scoutResult}
                         onSearchWithGrok={handleScoutSearchWithGrok}
                         onSearchWithPerplexity={handleScoutSearchWithPerplexity}

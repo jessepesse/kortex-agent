@@ -19,7 +19,7 @@ def register_config_routes(app):
         return jsonify({
             'providers': cfg.get('models', {}),
             'default_provider': cfg.get('default_provider', 'google'),
-            'default_model': cfg.get('default_model', 'gemini-2.5-flash')
+            'default_model': cfg.get('default_model', 'gemini-3-flash-preview')
         })
 
     @app.route('/api/models', methods=['GET'])

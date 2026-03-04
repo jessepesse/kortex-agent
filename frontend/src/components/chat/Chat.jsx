@@ -22,7 +22,7 @@ const Chat = ({
     const [inputValue, setInputValue] = useState('');
     const [selectedMode, setSelectedMode] = useState('normal');
     const [attachedFiles, setAttachedFiles] = useState([]);
-    const [selectedModel, setSelectedModel] = useState('gemini-2.5-flash');
+    const [selectedModel, setSelectedModel] = useState('gemini-3-flash-preview');
     const [selectedProvider, setSelectedProvider] = useState('google');
     const messagesEndRef = useRef(null);
 
@@ -57,7 +57,7 @@ const Chat = ({
         try {
             const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/config`);
             const config = await response.json();
-            setSelectedModel(config.default_model || 'gemini-2.5-flash');
+            setSelectedModel(config.default_model || 'gemini-3-flash-preview');
             setSelectedProvider(config.default_provider || 'google');
         } catch (error) {
             console.error('Failed to load settings:', error);

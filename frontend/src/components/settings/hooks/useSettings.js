@@ -12,7 +12,7 @@ export function useSettings(isOpen) {
     const [selectedFile, setSelectedFile] = useState('profile');
     const [jsonContent, setJsonContent] = useState('');
     const [status, setStatus] = useState('');
-    const [selectedModel, setSelectedModel] = useState('gemini-2.5-flash');
+    const [selectedModel, setSelectedModel] = useState('gemini-3-flash-preview');
     const [selectedProvider, setSelectedProvider] = useState('google');
     const [availableModels, setAvailableModels] = useState({});
     const [conversations, setConversations] = useState([]);
@@ -61,7 +61,7 @@ export function useSettings(isOpen) {
             const response = await fetch(`${API_URL}/api/config`);
             const config = await response.json();
             console.log('📥 Loaded model settings:', config.default_model, config.default_provider, config.providers);
-            setSelectedModel(config.default_model || 'gemini-2.5-flash');
+            setSelectedModel(config.default_model || 'gemini-3-flash-preview');
             setSelectedProvider(config.default_provider || 'google');
             setAvailableModels(config.providers || {});
         } catch (error) {
@@ -87,7 +87,7 @@ export function useSettings(isOpen) {
             setTimeout(() => setStatus(''), 2000);
 
             // Find if model supports thinking
-            const modelData = availableModels[provider]?.find(m => 
+            const modelData = availableModels[provider]?.find(m =>
                 (typeof m === 'object' ? m.id : m) === model
             );
             const supportsThinking = typeof modelData === 'object' && modelData.thinking === true;

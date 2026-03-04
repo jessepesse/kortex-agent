@@ -17,7 +17,7 @@ class TestLoadConfig:
         config = load_config()
         
         assert config["default_provider"] == "google"
-        assert config["default_model"] == "gemini-2.5-flash"
+        assert config["default_model"] == "gemini-3-flash-preview"
         assert "openai" in config["models"]
     
     def test_creates_default_if_not_exists(self, tmp_path, monkeypatch):

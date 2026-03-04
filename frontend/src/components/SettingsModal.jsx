@@ -7,7 +7,7 @@ const SettingsModal = ({ isOpen, onClose }) => {
     const [selectedFile, setSelectedFile] = useState('profile');
     const [jsonContent, setJsonContent] = useState('');
     const [status, setStatus] = useState('');
-    const [selectedModel, setSelectedModel] = useState('gemini-2.5-flash');
+    const [selectedModel, setSelectedModel] = useState('gemini-3-flash-preview');
     const [selectedProvider, setSelectedProvider] = useState('google');
     const [availableModels, setAvailableModels] = useState({});
 
@@ -63,7 +63,7 @@ const SettingsModal = ({ isOpen, onClose }) => {
             console.log('📥 Loaded model settings:', config.default_model, config.default_provider, config.providers);
             console.log('📥 OPENROUTER:', config.providers?.openrouter);
             alert('Providers loaded: ' + Object.keys(config.providers || {}).join(', '));
-            setSelectedModel(config.default_model || 'gemini-2.5-flash');
+            setSelectedModel(config.default_model || 'gemini-3-flash-preview');
             setSelectedProvider(config.default_provider || 'google');
             setAvailableModels(config.providers || {});
         } catch (error) {
@@ -93,7 +93,7 @@ const SettingsModal = ({ isOpen, onClose }) => {
             setTimeout(() => setStatus(''), 2000);
 
             // Find if model supports thinking
-            const modelData = availableModels[provider]?.find(m => 
+            const modelData = availableModels[provider]?.find(m =>
                 (typeof m === 'object' ? m.id : m) === model
             );
             const supportsThinking = typeof modelData === 'object' && modelData.thinking === true;
@@ -266,7 +266,7 @@ const SettingsModal = ({ isOpen, onClose }) => {
 
                         <h3>AI Configuration</h3>
                         {/* Debug: show available models count */}
-                        <p style={{fontSize: '10px', color: '#666'}}>
+                        <p style={{ fontSize: '10px', color: '#666' }}>
                             Providers: {Object.keys(availableModels).join(', ') || 'none loaded'}
                         </p>
                         <div className="setting-group">

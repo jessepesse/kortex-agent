@@ -30,7 +30,7 @@ def load_config() -> ConfigDict:
         default_config: ConfigDict = {
             "api_keys": {"openai": "", "google": "", "anthropic": "", "openrouter": ""},
             "default_provider": "google",
-            "default_model": "gemini-2.5-flash",
+            "default_model": "gemini-3-flash-preview",
             "models": {
                 "openai": [
                     {"id": "gpt-5"},
@@ -41,8 +41,8 @@ def load_config() -> ConfigDict:
                 "google": [
                     {"id": "gemini-3-pro-preview"},
                     {"id": "gemini-3.1-pro-preview"},
-                    {"id": "gemini-2.5-flash"},
-                    {"id": "gemini-2.5-flash-lite"}
+                    {"id": "gemini-3-flash-preview"},
+                    {"id": "gemini-3.1-flash-lite-preview"}
                 ],
                 "anthropic": [
                     {"id": "claude-opus-4-6"},

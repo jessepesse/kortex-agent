@@ -12,6 +12,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.0-alpha7] - 2026-03-04
+
+### Changed
+#### Model Updates
+- **Google:** Replaced `gemini-2.5-flash` with `gemini-3-flash-preview` across the system core and frontend UI.
+- **Google:** Replaced `gemini-2.5-flash-lite` with `gemini-3.1-flash-lite-preview` for Scout intelligence, titles, and background data management.
+
+---
+
 ## [1.0.0-alpha6-hotfix] - 2026-02-28
 
 ### Fixed

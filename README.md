@@ -11,7 +11,7 @@ Built with a modern **React frontend** and a robust **Flask backend**, Kortex su
 ### 🤖 Multi-Provider & Multimodal AI
 - **Providers:** 5 providers via **OpenRouter** — **Google Gemini**, **OpenAI**, **Anthropic**, **X-AI**, and **DeepSeek**.
 - **Models:** 15+ models across 5 providers:
-  - **Google:** `gemini-2.5-flash`, `gemini-2.5-flash-lite`, `gemini-3.1-pro-preview`, `gemini-3-flash-preview`
+  - **Google:** `gemini-3-flash-preview`, `gemini-3.1-flash-lite-preview`, `gemini-3.1-pro-preview`
   - **OpenAI:** `gpt-5-mini`, `gpt-5-nano`, `gpt-5`, `gpt-5.1`, `gpt-5.2`
   - **Anthropic:** `claude-opus-4.6`, `claude-opus-4.5`, `claude-sonnet-4.6`, `claude-haiku-4.5`
   - **X-AI:** `grok-4`, `grok-4.1-fast` (with native web search)
@@ -22,7 +22,7 @@ Built with a modern **React frontend** and a robust **Flask backend**, Kortex su
 
 ### � Web Search with Scout Intelligence
 - **3-Stage Pipeline:**
-  1. **Scout** (Gemini 2.5 Flash-Lite) — Analyzes query, decides if search needed
+  1. **Scout** (Gemini 3.1 Flash-Lite Preview) — Analyzes query, decides if search needed
   2. **Specialist** (Grok or Perplexity) — Performs actual web search
   3. **Synthesizer** (User's model) — Generates final response
 - **Scout Decisions:** NO_SEARCH (0-60%), SUGGEST_SEARCH (61-99%), FORCE_SEARCH (100%)
@@ -31,7 +31,7 @@ Built with a modern **React frontend** and a robust **Flask backend**, Kortex su
 - **Budget Protection:** FORCE searches always use cheaper Grok
 
 ### 🏛️ Elite Mode — *Powered by Council LLM*
-- **Raw LLM Power:** 3 top-tier models (Gemini 2.5 Flash, GPT-5.2, Claude Opus 4.5) give their unbiased perspective **without personas**.
+- **Raw LLM Power:** 3 top-tier models (Gemini 3 Flash Preview, GPT-5.2, Claude Opus 4.5) give their unbiased perspective **without personas**.
 - **Peer Review:** Each model anonymously reviews the others' responses.
 - **Chairman Synthesis:** A designated model (GPT-5.2) moderates and synthesizes the final decision.
 
@@ -171,7 +171,7 @@ Type your message. Upload files using the 📎 button. The AI has read-access to
 
 ### Changing Models
 Click the **Settings (⚙️)** icon in the sidebar footer.
-- Select your preferred **Chat Model** (e.g., `gemini-2.5-flash` for speed, `gpt-5` for reasoning).
+- Select your preferred **Chat Model** (e.g., `gemini-3-flash-preview` for speed, `gpt-5` for reasoning).
 - Configure the **Council Chairman**.
 - View and edit your raw JSON data directly.
 

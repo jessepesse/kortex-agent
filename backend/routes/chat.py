@@ -136,7 +136,7 @@ AI response: {response_content[:200]}
 Respond with ONLY the title, no quotes or extra text. Be specific and descriptive."""
                 
                 title_response = or_client.chat.completions.create(
-                    model="google/gemini-2.5-flash-lite",
+                    model="google/gemini-3.1-flash-lite-preview",
                     messages=[{"role": "user", "content": title_prompt}],
                     max_tokens=50
                 )
@@ -185,7 +185,7 @@ DO NOT SAY:
 - "Miten voin auttaa?" - help them NOW"""
 
                 followup_response = or_client.chat.completions.create(
-                    model="google/gemini-2.5-flash-lite",
+                    model="google/gemini-3.1-flash-lite-preview",
                     messages=[{"role": "user", "content": followup_prompt}],
                     max_tokens=200
                 )
@@ -326,7 +326,7 @@ Search type: {result.get('search_type')}
 Respond with ONLY the title."""
                 
                 title_response = or_client.chat.completions.create(
-                    model="google/gemini-2.5-flash-lite",
+                    model="google/gemini-3.1-flash-lite-preview",
                     messages=[{"role": "user", "content": title_prompt}],
                     max_tokens=50
                 )

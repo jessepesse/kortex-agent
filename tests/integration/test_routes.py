@@ -167,7 +167,7 @@ class TestModelsEndpoints:
         """POST /api/models should change default model"""
         response = client.post(
             '/api/models',
-            json={"provider": "google", "model": "gemini-2.5-flash-lite"}
+            json={"provider": "google", "model": "gemini-3.1-flash-lite-preview"}
         )
         
         assert response.status_code == 200
