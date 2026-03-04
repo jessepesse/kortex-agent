@@ -53,8 +53,8 @@ Definition of done:
 ## Optional Track Before `1.0.0`
 
 Local-first model is already implemented. If future deployment scope expands beyond localhost:
-- [ ] Add explicit auth for sensitive endpoints (`/api/config/api-keys`, `/api/backup/*`, write routes)
-- [ ] Add threat model section for non-local deployments
+- [x] Add explicit auth for sensitive endpoints (`/api/config/api-keys`, `/api/backup/*`, write routes)
+- [x] Add baseline threat model section for non-local deployments (`SECURITY.md`)
 
 ## Suggested Sequence
 

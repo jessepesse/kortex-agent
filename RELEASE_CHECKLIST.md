@@ -42,6 +42,7 @@ Use this checklist before creating any version tag (`vX.Y.Z` or `vX.Y.Z-betaN`).
 
 - [ ] Local-first defaults preserved (`127.0.0.1` host bindings)
 - [ ] Non-local deployment docs include auth requirements (`KORTEX_REQUIRE_AUTH`, `KORTEX_API_TOKEN`)
+- [ ] Baseline non-local threat model documented in `SECURITY.md`
 
 ## 5) Tag, Push, Release
 

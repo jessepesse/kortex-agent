@@ -51,4 +51,54 @@ For non-local deployments, enable API authentication:
 
 When auth is enabled, `/api/*` routes (except `/api/health`) require a valid bearer token.
 
+## Non-Local Threat Model (Baseline)
+
+This section defines the minimum security model for deployments beyond localhost.
+Non-local deployment is still advanced usage and requires explicit hardening by operators.
+
+### Assets
+
+- API keys stored in `config.json` / environment variables
+- User data in `data/*.json` and `data/conversations/*.json`
+- Backup archives from `/api/backup/*`
+- Administrative configuration exposed by `/api/config/*`
+
+### Trust Boundaries
+
+- Client (browser/UI) to backend API (`/api/*`)
+- Backend process to local filesystem (config, data, backups)
+- Optional reverse proxy / container network to backend service
+- Host/network perimeter separating trusted private network from internet
+
+### Entry Points
+
+- HTTP API routes on backend (`/api/*`)
+- Backup upload/restore endpoints (`/api/backup/validate`, `/api/backup/restore`)
+- Configuration write endpoints (`/api/config/api-keys`, `/api/models`, data write routes)
+
+### Security Assumptions
+
+- Local-first defaults remain in place (`127.0.0.1` binds by default)
+- Non-local exposure requires `KORTEX_REQUIRE_AUTH=true`
+- `KORTEX_API_TOKEN` is high-entropy and kept secret
+- TLS termination is handled by a trusted reverse proxy/load balancer
+- Network access is restricted (firewall/VPN/private subnet)
+
+### Primary Risks
+
+- Unauthorized API access from weak/missing token controls
+- Credential leakage (API keys, bearer token, config files)
+- Sensitive data exposure via backup endpoints or misconfigured network binds
+- Brute-force and abuse against public endpoints
+- Overexposure from `0.0.0.0` binding without perimeter controls
+
+### Required Controls Before Internet Exposure
+
+- Keep host-level port publishing restricted to trusted sources
+- Enforce API token auth for all non-health API routes
+- Use TLS in transit (HTTPS via reverse proxy)
+- Rotate and protect secrets (`KORTEX_API_TOKEN`, provider API keys)
+- Monitor logs for auth failures and abnormal request patterns
+- Maintain routine dependency/security scanning in CI
+
 Thank you for helping keep Kortex Agent secure!
