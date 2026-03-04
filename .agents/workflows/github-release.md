@@ -64,6 +64,12 @@ Always run this before drafting final release notes or creating tags:
 ./scripts/preflight_release.sh
 ```
 
+Then complete:
+
+```bash
+cat RELEASE_CHECKLIST.md
+```
+
 It runs:
 - `npm --prefix frontend ci`
 - `npm --prefix frontend run lint`

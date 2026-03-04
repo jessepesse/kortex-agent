@@ -2,19 +2,22 @@
 Chat routes - Main AI conversation endpoint
 """
 
-from flask import request, jsonify
+from flask import request
 import asyncio
 
 from kortex import config, data
 from kortex.ai import handler as ai_handler
+from backend.errors import (
+    handle_async_exceptions,
+    handle_exceptions,
+    success_response,
+    error_response,
+)
 
 
-def register_chat_routes(app):
-    """Register chat-related endpoints"""
-    
-from backend.errors import handle_async_exceptions
-
-# ... imports ...
+def _sanitize_chat_error(_: str | None) -> str:
+    """Return a safe client-facing chat error message."""
+    return "AI request failed. Check provider/model settings and try again."
 
 def register_chat_routes(app):
     """Register chat-related endpoints"""
@@ -33,7 +36,7 @@ def register_chat_routes(app):
             "provider": str
         }
         """
-        request_data = request.get_json()
+        request_data = request.get_json() or {}
         message = request_data.get('message', '')
         history = request_data.get('history', [])
         files = request_data.get('files', [])
@@ -41,7 +44,7 @@ def register_chat_routes(app):
         openrouter_reasoning_config = request_data.get('openrouter_reasoning_config')
         
         if not message and not files:
-            return jsonify({"error": "Message or files required"}), 400
+            return error_response("Message or files required", 400)
         
         # Get config
         cfg = config.load_config()
@@ -55,7 +58,7 @@ def register_chat_routes(app):
         # Get API key for provider
         api_key = cfg['api_keys'].get(provider)
         if not api_key:
-            return jsonify({"error": f"No API key configured for {provider}"}), 400
+            return error_response(f"No API key configured for {provider}", 400)
         
         # Generate or use existing chat_id
         chat_id = request_data.get('chat_id')
@@ -87,6 +90,9 @@ def register_chat_routes(app):
             ai_handler.get_ai_response, 
             message, history, model, provider, api_key, files, openrouter_reasoning_config
         )
+
+        if chat_result.get("error"):
+            chat_result["error"] = _sanitize_chat_error(chat_result.get("error"))
         
         # Ensure we have valid response content for Scribe
         response_content = chat_result.get("response") or chat_result.get("error") or "(No response)"
@@ -210,23 +216,21 @@ DO NOT SAY:
         if scribe_updates:
             response_data['scribe_updates'] = scribe_updates
         
-        return jsonify(response_data)
+        return success_response(data=response_data)
     
     @app.route('/api/function-call/execute', methods=['POST'])
+    @handle_exceptions
     def execute_function_call():
         """Execute a function call (after user approval)"""
-        try:
-            request_data = request.get_json()
-            function_name = request_data.get('function_name')
-            args = request_data.get('args', {})
-            
-            if not function_name:
-                return jsonify({"success": False, "message": "Function name is required"}), 400
-            
-            result = ai_handler.execute_function(function_name, args)
-            return jsonify(result)
-        except Exception:
-            return jsonify({"success": False, "message": "Execution failed"}), 500
+        request_data = request.get_json() or {}
+        function_name = request_data.get('function_name')
+        args = request_data.get('args', {})
+
+        if not function_name:
+            return error_response("Function name is required", 400)
+
+        result = ai_handler.execute_function(function_name, args)
+        return success_response(data=result)
 
     @app.route('/api/chat/websearch', methods=['POST'])
     @handle_async_exceptions
@@ -244,14 +248,14 @@ DO NOT SAY:
             "force_model": str (optional) - 'grok' or 'perplexity'
         }
         """
-        request_data = request.get_json()
+        request_data = request.get_json() or {}
         message = request_data.get('message', '')
         history = request_data.get('history', [])
         reasoning_enabled = request_data.get('reasoning_enabled', False)
         force_model = request_data.get('force_model')  # User override
         
         if not message:
-            return jsonify({"error": "Message required"}), 400
+            return error_response("Message required", 400)
         
         # Get config
         cfg = config.load_config()
@@ -275,6 +279,9 @@ DO NOT SAY:
             reasoning_enabled=reasoning_enabled,
             force_model=force_model
         )
+
+        if result.get("error"):
+            return error_response("Web search failed. Please try again.", 502)
         
         # Generate or use existing chat_id
         chat_id = request_data.get('chat_id')
@@ -338,7 +345,7 @@ Respond with ONLY the title."""
         
         data.save_conversation(chat_id, new_history, title)
         
-        return jsonify({
+        return success_response(data={
             "response": response_content,
             "chat_id": chat_id,
             "search_type": result.get('search_type'),
@@ -368,15 +375,15 @@ Respond with ONLY the title."""
             "recommended_model": str
         }
         """
-        request_data = request.get_json()
+        request_data = request.get_json() or {}
         message = request_data.get('message', '')
         history = request_data.get('history', [])
         
         if not message:
-            return jsonify({"error": "Message required"}), 400
+            return error_response("Message required", 400)
         
         from kortex.ai.scout import scout_analyze
         
         result = await scout_analyze(message, history)
         
-        return jsonify(result)
+        return success_response(data=result)

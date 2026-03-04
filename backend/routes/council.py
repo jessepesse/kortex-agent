@@ -2,14 +2,12 @@
 Council routes - Elite, Hive, and Mega council modes
 """
 
-from flask import request, jsonify
+from flask import request
 import time
 import random
 
 from kortex import config, data
-
-
-from backend.errors import handle_async_exceptions
+from backend.errors import handle_async_exceptions, success_response, error_response
 
 # ... imports ...
 
@@ -47,12 +45,12 @@ Respond with ONLY the title in Finnish, no quotes or extra text. Be specific and
     @handle_async_exceptions
     async def council():
         """Trigger Council Mode: Query multiple models and synthesize"""
-        request_data = request.get_json()
+        request_data = request.get_json() or {}
         message = request_data.get('message', '')
         history = request_data.get('history', [])
         
         if not message:
-            return jsonify({"error": "Message is required"}), 400
+            return error_response("Message is required", 400)
         
         context = data.load_all_context()
         cfg = config.load_config()
@@ -85,18 +83,18 @@ Respond with ONLY the title in Finnish, no quotes or extra text. Be specific and
         
         # Include chat_id in response so frontend can track the conversation
         result['chat_id'] = chat_id
-        return jsonify(result)
+        return success_response(data=result)
 
     @app.route('/api/hive', methods=['POST'])
     @handle_async_exceptions
     async def hive():
         """Trigger Hive Mode: 6 DeepSeek personas with specialized roles"""
-        request_data = request.get_json()
+        request_data = request.get_json() or {}
         message = request_data.get('message', '')
         history = request_data.get('history', [])
         
         if not message:
-            return jsonify({"error": "Message is required"}), 400
+            return error_response("Message is required", 400)
         
         context = data.load_all_context()
         cfg = config.load_config()
@@ -129,18 +127,18 @@ Respond with ONLY the title in Finnish, no quotes or extra text. Be specific and
         
         # Include chat_id in response so frontend can track the conversation
         result['chat_id'] = chat_id
-        return jsonify(result)
+        return success_response(data=result)
 
     @app.route('/api/mega', methods=['POST'])
     @handle_async_exceptions
     async def mega():
         """Trigger MEGA Mode: Elite + Hive battle → Ultimate Chairman"""
-        request_data = request.get_json()
+        request_data = request.get_json() or {}
         message = request_data.get('message', '')
         history = request_data.get('history', [])
         
         if not message:
-            return jsonify({"error": "Message is required"}), 400
+            return error_response("Message is required", 400)
         
         context = data.load_all_context()
         cfg = config.load_config()
@@ -173,4 +171,4 @@ Respond with ONLY the title in Finnish, no quotes or extra text. Be specific and
         
         # Include chat_id in response so frontend can track the conversation
         result['chat_id'] = chat_id
-        return jsonify(result)
+        return success_response(data=result)

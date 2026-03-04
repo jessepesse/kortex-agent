@@ -13,6 +13,8 @@ const api = axios.create({
   },
 });
 
+const unwrapData = (response, fallback = {}) => response.data?.data ?? fallback;
+
 /**
  * Send a chat message to AI
  */
@@ -30,7 +32,7 @@ export const sendMessage = async (message, history = [], model = null, provider 
     if (forceSearchModel) payload.force_model = forceSearchModel;
     
     const response = await api.post('/api/chat/websearch', payload);
-    return response.data;
+    return unwrapData(response, {});
   }
   
   // Standard chat endpoint
@@ -61,7 +63,7 @@ export const sendMessage = async (message, history = [], model = null, provider 
   }
 
   const response = await api.post('/api/chat', payload);
-  return response.data;
+  return unwrapData(response, {});
 };
 
 export const getHistory = async () => {
@@ -80,7 +82,7 @@ export const getChat = async (chatId) => {
  */
 export const scoutAnalyze = async (message, history = []) => {
   const response = await api.post('/api/chat/scout', { message, history });
-  return response.data;
+  return unwrapData(response, {});
 };
 
 /**
@@ -107,7 +109,7 @@ export const runCouncil = async (message, history, chatId = null) => {
     const payload = { message, history };
     if (chatId) payload.chat_id = chatId;
     const response = await api.post('/api/council', payload);
-    return response.data;
+    return unwrapData(response, {});
   } catch (error) {
     console.error('Error running council:', error);
     return { error: error.message };
@@ -122,7 +124,7 @@ export const runHive = async (message, history, chatId = null) => {
     const payload = { message, history };
     if (chatId) payload.chat_id = chatId;
     const response = await api.post('/api/hive', payload);
-    return response.data;
+    return unwrapData(response, {});
   } catch (error) {
     console.error('Error running hive:', error);
     return { error: error.message };
@@ -137,7 +139,7 @@ export const runMega = async (message, history, chatId = null) => {
     const payload = { message, history };
     if (chatId) payload.chat_id = chatId;
     const response = await api.post('/api/mega', payload);
-    return response.data;
+    return unwrapData(response, {});
   } catch (error) {
     console.error('Error running mega:', error);
     return { error: error.message };
@@ -190,7 +192,7 @@ export const executeFunction = async (functionName, args) => {
     function_name: functionName,
     args,
   });
-  return response.data;
+  return unwrapData(response, { success: false, message: 'Execution failed' });
 };
 
 /**
