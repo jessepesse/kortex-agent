@@ -40,6 +40,14 @@ git tag -l "v*"
 
 This catches dependency conflicts and quality gate failures locally before pushing fixes to GitHub.
 
+4. `main` branch protection must require the `Run Tests` check before merge
+
+```bash
+gh api repos/:owner/:repo/branches/main/protection --jq '.required_status_checks.contexts'
+```
+
+Ensure `Run Tests` is listed.
+
 ## Core Concepts
 
 ### Version Numbering (Semantic Versioning)
@@ -74,8 +82,17 @@ It runs:
 - `npm --prefix frontend ci`
 - `npm --prefix frontend run lint`
 - `npm --prefix frontend run build`
-- `pytest --tb=short -q`
+- `pytest --tb=short -q` (with stability re-run)
 - `./scripts/security_check.sh`
+- `./scripts/docker_release_smoke.sh`
+
+If Docker is intentionally unavailable in your local environment, run:
+
+```bash
+KORTEX_SKIP_DOCKER_SMOKE=1 ./scripts/preflight_release.sh
+```
+
+And document the skip reason in release notes/checklist.
 
 ### Step 1: Analyze Changes Since Last Release
 

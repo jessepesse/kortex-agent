@@ -52,6 +52,9 @@ jobs:
       
       - name: Build frontend
         run: npm --prefix frontend run build
+
+      - name: Security scan (Bandit)
+        run: ./scripts/security_check.sh
       
       - name: Run pytest
         run: timeout 180s pytest --tb=short -v

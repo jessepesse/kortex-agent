@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 # Run Bandit security check
 # Excludes venv, tests, and other non-production directories
 
