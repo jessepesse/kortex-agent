@@ -43,4 +43,12 @@ By default, backend binds to `127.0.0.1` (localhost only).
 
 If you override binding (for example `KORTEX_BIND_HOST=0.0.0.0` in Docker), you are responsible for keeping host-level bindings local-only and adding proper perimeter controls. Default `docker-compose.yml` publishes ports only on `127.0.0.1`.
 
+For non-local deployments, enable API authentication:
+
+- `KORTEX_REQUIRE_AUTH=true`
+- `KORTEX_API_TOKEN=<long-random-token>`
+- Pass header: `Authorization: Bearer <token>`
+
+When auth is enabled, `/api/*` routes (except `/api/health`) require a valid bearer token.
+
 Thank you for helping keep Kortex Agent secure!

@@ -164,6 +164,10 @@ The app will open at `http://localhost:3000`.
 - Backend default bind is `127.0.0.1` (localhost-only).
 - Do **not** expose Kortex directly to public internet.
 - If you set `KORTEX_BIND_HOST=0.0.0.0` for container networking, keep host port bindings on localhost only (as in `docker-compose.yml`).
+- For non-local deployments, enable API auth:
+  - `KORTEX_REQUIRE_AUTH=true`
+  - `KORTEX_API_TOKEN=<long-random-token>`
+  - Send `Authorization: Bearer <token>` in API requests.
 
 ### Docker (Alternative)
 

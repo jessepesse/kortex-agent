@@ -9,6 +9,7 @@ Use this checklist before creating any tag/release.
 - [ ] Changelog updated for target version
 - [ ] Version synced (`frontend/package.json`, `setup.py`, `kortex/__init__.py`, `README.md`, `kortex/backup.py`)
 - [ ] Release notes drafted (summary + full changelog)
+- [ ] If deployment is non-local: `KORTEX_REQUIRE_AUTH=true` and `KORTEX_API_TOKEN` configured/documented
 
 ## Tag & Push
 
