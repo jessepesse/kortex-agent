@@ -7,6 +7,7 @@ Can be run manually or as a background task
 import os
 import sys
 import json
+import logging
 from openai import OpenAI
 from pathlib import Path
 
@@ -14,6 +15,13 @@ from pathlib import Path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from kortex.config import load_config
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s:%(lineno)d - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+logger = logging.getLogger(__name__)
 
 
 def fix_conversation_titles(dry_run=False):
@@ -24,7 +32,7 @@ def fix_conversation_titles(dry_run=False):
     api_key = config['api_keys'].get('openrouter')
     
     if not api_key:
-        print("❌ No OpenRouter API key found")
+        logger.error("No OpenRouter API key found")
         return
     
     or_client = OpenAI(
@@ -35,11 +43,11 @@ def fix_conversation_titles(dry_run=False):
     # Find all conversation files
     conv_dir = Path(__file__).parent.parent / 'data' / 'conversations'
     if not conv_dir.exists():
-        print(f"❌ Conversations directory not found: {conv_dir}")
+        logger.error("Conversations directory not found: %s", conv_dir)
         return
     
     conv_files = list(conv_dir.glob('*.json'))
-    print(f"📂 Found {len(conv_files)} conversation files")
+    logger.info("Found %d conversation files", len(conv_files))
     
     fixed_count = 0
     skipped_count = 0
@@ -59,7 +67,7 @@ def fix_conversation_titles(dry_run=False):
             # Get first user message
             messages = conv_data.get('messages', [])
             if not messages:
-                print(f"⚠️  {conv_file.name}: No messages, skipping")
+                logger.warning("%s: No messages, skipping", conv_file.name)
                 skipped_count += 1
                 continue
             
@@ -75,7 +83,7 @@ def fix_conversation_titles(dry_run=False):
                     break
             
             if not user_msg:
-                print(f"⚠️  {conv_file.name}: No user message found, skipping")
+                logger.warning("%s: No user message found, skipping", conv_file.name)
                 skipped_count += 1
                 continue
             
@@ -97,7 +105,7 @@ Respond with ONLY the title in Finnish, no quotes or extra text. Be specific and
                     new_title = title_response.choices[0].message.content.strip()[:50]
                     
                     if dry_run:
-                        print(f"🔍 {conv_file.name}: Would update '{current_title}' → '{new_title}'")
+                        logger.info("%s: Would update '%s' -> '%s'", conv_file.name, current_title, new_title)
                     else:
                         # Update title
                         conv_data['title'] = new_title
@@ -106,25 +114,22 @@ Respond with ONLY the title in Finnish, no quotes or extra text. Be specific and
                         with open(conv_file, 'w', encoding='utf-8') as f:
                             json.dump(conv_data, f, ensure_ascii=False, indent=2)
                         
-                        print(f"✅ {conv_file.name}: Updated to '{new_title}'")
+                        logger.info("%s: Updated to '%s'", conv_file.name, new_title)
                     
                     fixed_count += 1
                 else:
-                    print(f"⚠️  {conv_file.name}: Gemini returned empty response")
+                    logger.warning("%s: Gemini returned empty response", conv_file.name)
                     skipped_count += 1
                     
             except Exception as e:
-                print(f"❌ {conv_file.name}: Failed to generate title: {e}")
+                logger.error("%s: Failed to generate title: %s", conv_file.name, e)
                 skipped_count += 1
                 
         except Exception as e:
-            print(f"❌ {conv_file.name}: Error reading file: {e}")
+            logger.error("%s: Error reading file: %s", conv_file.name, e)
             skipped_count += 1
     
-    print(f"\n📊 Summary:")
-    print(f"   ✅ Fixed: {fixed_count}")
-    print(f"   ⏭️  Skipped: {skipped_count}")
-    print(f"   📁 Total: {len(conv_files)}")
+    logger.info("Summary: fixed=%d skipped=%d total=%d", fixed_count, skipped_count, len(conv_files))
 
 
 if __name__ == "__main__":
@@ -135,10 +140,9 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
     
-    print("🔧 Kortex Agent Title Fixer")
-    print("=" * 50)
+    logger.info("Kortex Agent Title Fixer")
     
     if args.dry_run:
-        print("🔍 DRY RUN MODE - No changes will be made\n")
+        logger.info("DRY RUN MODE - No changes will be made")
     
     fix_conversation_titles(dry_run=args.dry_run)
