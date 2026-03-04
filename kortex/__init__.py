@@ -5,7 +5,7 @@ A pragmatic AI-powered life management system with Council LLM architecture.
 Supporting multiple LLM providers (Google Gemini, OpenAI, Anthropic).
 """
 
-__version__ = "1.0.0-alpha6-hotfix2"
+__version__ = "1.0.0-alpha7"
 
 from . import config
 from . import data
