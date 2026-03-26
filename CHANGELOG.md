@@ -5,6 +5,20 @@ All notable changes to Kortex Agent will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0-rc2] - 2026-03-26
+
+### Fixed
+- **7 Dependabot security vulnerabilities patched**:
+  - `pypdf` 6.7.5 → 6.9.2 — Fixes infinite loop in DictionaryObject, inefficient array-based stream decoding, and RAM exhaustion via manipulated stream lengths (alerts #55, #52, #48)
+  - `pyasn1` ≥0.6.3 — Fixes denial of service via unbounded recursion (alerts #51, #50)
+  - `requests` ≥2.33.0 — Fixes insecure temp file reuse in extract_zipped_paths (alerts #57, #56)
+- **CI worktree gitlink cleanup** — Removed accidental worktree gitlink from repository
+
+### Known Issues
+- **Pygments ≤ 2.19.2** — Low-severity ReDoS vulnerability (alert #54). No patched version available upstream yet.
+
+---
+
 ## [1.0.0-rc1] - 2026-03-04
 
 ### Added
