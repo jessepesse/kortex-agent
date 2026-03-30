@@ -5,6 +5,27 @@ All notable changes to Kortex Agent will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0-rc3] - 2026-03-30
+
+### Changed
+- **Major frontend toolchain upgrade**:
+  - `vite` 7.3.1 → 8.0.3 (Rolldown bundler, ~8× faster builds)
+  - `eslint` 9.39.3 → 10.1.0
+  - `@eslint/js` 9.39.3 → 10.0.1
+  - `@vitejs/plugin-react` 5.1.2 → 6.0.1
+- **Dependency updates**:
+  - `anthropic` 0.84.0 → 0.86.0
+  - `openai` 2.24.0 → 2.30.0
+  - `aiohttp` 3.13.3 → 3.13.4
+  - `axios` 1.13.5 → 1.14.0
+  - `pytest-cov` 7.0.0 → 7.1.0
+- **CodeQL workflow** — Added `actions` and `javascript-typescript` language scanning
+
+### Removed
+- **RELEASE_READINESS_PLAN.md** — Completed roadmap, no longer needed
+
+---
+
 ## [1.0.0-rc2] - 2026-03-26
 
 ### Fixed
