@@ -5,6 +5,25 @@ All notable changes to Kortex Agent will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0-rc4] - 2026-04-03
+
+### Fixed
+- **Anthropic SDK security patches** — `anthropic` 0.86.0 → 0.87.0
+  - Insecure default file permissions in local filesystem memory tool (alert #62)
+  - Memory tool path validation race condition allows sandbox escape (alert #63)
+- **axios supply chain mitigation** — Pinned to `1.14.0` (removed caret range) after `1.14.1` compromise on 2026-03-31
+
+### Changed
+- **GitHub Actions updated**:
+  - `actions/setup-node` v4 → v6
+  - `docker/setup-buildx-action` v3 → v4
+  - `docker/login-action` v3 → v4
+  - `docker/metadata-action` v5 → v6
+  - `docker/build-push-action` v6 → v7
+- **Dependency updates**: `aiohttp` 3.13.4, `openai` 2.30.0, `axios` 1.14.0
+
+---
+
 ## [1.0.0-rc3] - 2026-03-30
 
 ### Changed
