@@ -34,6 +34,7 @@ const SettingsModal = ({ isOpen, onClose }) => {
         updateLanguage,
         loadData,
         loadConversations,
+        ollamaStatus,
         status,
         setStatus
     } = useSettings(isOpen);
@@ -73,6 +74,7 @@ const SettingsModal = ({ isOpen, onClose }) => {
                             onModelChange={handleModelChange}
                             language={dataFiles.profile?.language}
                             onLanguageChange={updateLanguage}
+                            ollamaStatus={ollamaStatus}
                         />
 
                         {activeTab === 'data' && (

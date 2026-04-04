@@ -161,7 +161,12 @@ const Chat = ({ messages, onSendMessage, isLoading, contextData, councilLoading 
     }, [input]);
 
     const getCurrentModelSupport = () => {
-        return MODEL_FILE_SUPPORT[currentModel] || MODEL_FILE_SUPPORT['gemini-3-flash-preview'];
+        // Known models use their specific config; unknown models (e.g. Ollama) get text-only
+        return MODEL_FILE_SUPPORT[currentModel] || {
+            accept: '.txt,.md',
+            types: ['text/plain', 'text/markdown'],
+            description: 'Text only'
+        };
     };
 
     const handleFileSelect = (e) => {

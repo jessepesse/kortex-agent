@@ -235,6 +235,8 @@ def get_ai_response(message, history, model, provider, api_key, files=None, open
                 return _get_claude_response(message, history, model, api_key, system_prompt, files)
         elif provider == "openrouter":
             return _get_openrouter_response(message, history, model, api_key, system_prompt, files, openrouter_reasoning_config)
+        elif provider == "ollama":
+            return _get_ollama_response(message, history, model, system_prompt)
         else:
             return {"response": None, "function_calls": None, "error": f"Unknown provider: {provider}"}
     
@@ -620,4 +622,67 @@ def _get_openrouter_response(message, history, model, api_key, system_prompt, fi
         "function_calls": None,
         "error": None,
         "reasoning_details": reasoning_details
+    }
+
+
+def _get_ollama_response(message, history, model, system_prompt):
+    """Handle Ollama local model response via OpenAI-compatible API.
+
+    Ollama exposes an OpenAI-compatible endpoint at /v1/chat/completions.
+    Uses the OpenAI Python SDK pointed at the local Ollama server.
+    Supports tool/function calling for models that support it.
+    """
+    import os
+
+    base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+
+    client = OpenAI(
+        base_url=f"{base_url}/v1",
+        api_key="ollama"  # Ollama doesn't require a key, but the SDK requires a non-empty value
+    )
+
+    # Build messages
+    messages = [{"role": "system", "content": system_prompt}]
+    for msg in history:
+        messages.append({
+            "role": msg.get("role", "user"),
+            "content": sanitize_content(msg.get("content", ""))
+        })
+    messages.append({"role": "user", "content": message})
+
+    try:
+        # Try with tool calling first
+        response = client.chat.completions.create(
+            model=model,
+            messages=messages,
+            tools=TOOL_DEFINITIONS,
+            tool_choice="auto"
+        )
+    except Exception as tool_error:
+        # If tool calling fails (model doesn't support it), retry without tools
+        logger.info("Ollama model %s doesn't support tools, retrying without: %s", model, tool_error)
+        try:
+            response = client.chat.completions.create(
+                model=model,
+                messages=messages
+            )
+        except Exception as e:
+            return {"response": None, "function_calls": None, "error": f"Ollama error: {str(e)}"}
+
+    message_obj = response.choices[0].message
+
+    # Extract function calls if any
+    function_calls = []
+    if hasattr(message_obj, 'tool_calls') and message_obj.tool_calls:
+        for tool_call in message_obj.tool_calls:
+            if tool_call.type == "function":
+                function_calls.append({
+                    "name": tool_call.function.name,
+                    "args": json.loads(tool_call.function.arguments)
+                })
+
+    return {
+        "response": message_obj.content or "",
+        "function_calls": function_calls if function_calls else None,
+        "error": None
     }

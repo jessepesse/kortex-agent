@@ -28,7 +28,7 @@ def load_config() -> ConfigDict:
     
     if not CONFIG_FILE.exists():
         default_config: ConfigDict = {
-            "api_keys": {"openai": "", "google": "", "anthropic": "", "openrouter": ""},
+            "api_keys": {"openai": "", "google": "", "anthropic": "", "openrouter": "", "ollama": ""},
             "default_provider": "google",
             "default_model": "gemini-3-flash-preview",
             "models": {
@@ -52,7 +52,8 @@ def load_config() -> ConfigDict:
                 ],
                 "openrouter": [
                     {"id": "gemini-3-flash-preview", "thinking": True}
-                ]
+                ],
+                "ollama": []
             }
         }
         save_config(default_config)

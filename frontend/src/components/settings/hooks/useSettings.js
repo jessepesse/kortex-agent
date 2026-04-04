@@ -40,6 +40,21 @@ export function useSettings(isOpen) {
         }
     }, []);
 
+    const [ollamaStatus, setOllamaStatus] = useState({ available: false, error: null });
+
+    const loadOllamaModels = useCallback(async () => {
+        try {
+            const response = await fetch(`${API_URL}/api/ollama/models`);
+            const result = await response.json();
+            const data = result.data || result;
+            setOllamaStatus({ available: data.available, error: data.error || null });
+            return data.available ? data.models.map(m => ({ id: m.id, display_name: m.display_name, size_gb: m.size_gb })) : [];
+        } catch {
+            setOllamaStatus({ available: false, error: 'Failed to fetch Ollama models' });
+            return [];
+        }
+    }, []);
+
     const loadModelSettings = useCallback(async () => {
         try {
             const response = await fetch(`${API_URL}/api/config`);
@@ -48,11 +63,21 @@ export function useSettings(isOpen) {
             console.log('📥 Loaded model settings:', config.default_model, config.default_provider, config.providers);
             setSelectedModel(config.default_model || 'gemini-3-flash-preview');
             setSelectedProvider(config.default_provider || 'google');
-            setAvailableModels(config.providers || {});
+
+            // Fetch Ollama models dynamically
+            const ollamaModels = await loadOllamaModels();
+            const providers = { ...(config.providers || {}) };
+            if (ollamaModels.length > 0) {
+                providers.ollama = ollamaModels.map(m => ({ id: m.id }));
+            } else if (!providers.ollama || providers.ollama.length === 0) {
+                // Keep ollama in list but empty so UI can show status
+                providers.ollama = [];
+            }
+            setAvailableModels(providers);
         } catch (error) {
             console.error('Failed to load model settings:', error);
         }
-    }, []);
+    }, [loadOllamaModels]);
 
     // Load data when modal opens
     useEffect(() => {
@@ -71,8 +96,10 @@ export function useSettings(isOpen) {
     }, [selectedFile, dataFiles]);
 
     const handleModelChange = async (providerAndModel) => {
-        // Value format: "provider:model_id"
-        const [provider, model] = providerAndModel.split(':');
+        // Value format: "provider:model_id" (model_id may contain colons, e.g. "qwen3:8b")
+        const sepIndex = providerAndModel.indexOf(':');
+        const provider = providerAndModel.substring(0, sepIndex);
+        const model = providerAndModel.substring(sepIndex + 1);
         console.log('🔄 Changing model to:', model, 'provider:', provider);
         setSelectedModel(model);
         setSelectedProvider(provider);
@@ -137,6 +164,7 @@ export function useSettings(isOpen) {
         selectedProvider,
         availableModels,
         handleModelChange,
+        ollamaStatus,
 
         // Backup state
         conversations,

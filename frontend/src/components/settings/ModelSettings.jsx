@@ -10,7 +10,8 @@ const ModelSettings = ({
     availableModels,
     onModelChange,
     language,
-    onLanguageChange
+    onLanguageChange,
+    ollamaStatus
 }) => {
     const handleChange = (e) => {
         onModelChange(e.target.value);
@@ -26,20 +27,32 @@ const ModelSettings = ({
                     value={`${selectedProvider}:${selectedModel}`}
                     onChange={handleChange}
                 >
-                    {Object.entries(availableModels || {}).map(([provider, models]) => (
-                        <optgroup key={provider} label={provider.charAt(0).toUpperCase() + provider.slice(1)}>
-                            {models.map((model) => {
-                                const modelId = typeof model === 'object' ? model.id : model;
-                                const displayName = modelId.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-                                return (
-                                    <option key={modelId} value={`${provider}:${modelId}`}>
-                                        {displayName}
-                                    </option>
-                                );
-                            })}
-                        </optgroup>
-                    ))}
+                    {Object.entries(availableModels || {}).map(([provider, models]) => {
+                        // Skip Ollama if no models available
+                        if (provider === 'ollama' && (!models || models.length === 0)) return null;
+                        const label = provider === 'ollama' ? 'Ollama (Local)' : provider.charAt(0).toUpperCase() + provider.slice(1);
+                        return (
+                            <optgroup key={provider} label={label}>
+                                {models.map((model) => {
+                                    const modelId = typeof model === 'object' ? model.id : model;
+                                    const displayName = provider === 'ollama'
+                                        ? modelId.replace(':latest', '')
+                                        : modelId.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+                                    return (
+                                        <option key={modelId} value={`${provider}:${modelId}`}>
+                                            {displayName}
+                                        </option>
+                                    );
+                                })}
+                            </optgroup>
+                        );
+                    })}
                 </select>
+                {ollamaStatus && !ollamaStatus.available && (
+                    <p className="ollama-status" style={{ fontSize: '0.8em', color: '#f5a623', marginTop: '4px' }}>
+                        ⚠️ {ollamaStatus.error || 'Ollama not detected — is it installed and running?'}
+                    </p>
+                )}
             </div>
 
             <div className="setting-group">

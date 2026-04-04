@@ -1,26 +1,35 @@
 # 🧠 KORTEX >_ Personal AI Assistant
 
-> **Version 1.0.0-rc4 | Powered by Council LLM Architecture**
+> **Version 1.0.0 | Powered by Council LLM Architecture**
 
 **Kortex Agent** is a comprehensive, context-aware AI assistant designed to act as your personal operating system. It integrates deeply with your life's data—values, health, projects, routines—to provide pragmatic, personalized advice.
 
-Built with a modern **React frontend** and a robust **Flask backend**, Kortex supports **multiple AI providers** (Google Gemini, OpenAI, Anthropic) and **multimodal interactions** (text, images, audio, video, PDF).
+Built with a modern **React frontend** and a robust **Flask backend**, Kortex supports **multiple AI providers** (Google Gemini, OpenAI, Anthropic, and **Ollama for fully offline use**) and **multimodal interactions** (text, images, audio, video, PDF).
 
 ## ✨ Key Features
 
 ### 🤖 Multi-Provider & Multimodal AI
-- **Providers:** 5 providers via **OpenRouter** — **Google Gemini**, **OpenAI**, **Anthropic**, **X-AI**, and **DeepSeek**.
-- **Models:** 15+ models across 5 providers:
+- **Providers:** 6 providers — **Google Gemini**, **OpenAI**, **Anthropic**, **X-AI**, **DeepSeek** (via OpenRouter), and **Ollama** (local).
+- **Models:** 15+ cloud models across 5 providers + unlimited local Ollama models:
   - **Google:** `gemini-3-flash-preview`, `gemini-3.1-flash-lite-preview`, `gemini-3.1-pro-preview`
   - **OpenAI:** `gpt-5-mini`, `gpt-5-nano`, `gpt-5`, `gpt-5.1`, `gpt-5.2`
   - **Anthropic:** `claude-opus-4.6`, `claude-opus-4.5`, `claude-sonnet-4.6`, `claude-haiku-4.5`
   - **X-AI:** `grok-4`, `grok-4.1-fast` (with native web search)
   - **DeepSeek:** `deepseek-v3.2-speciale`
+  - **Ollama:** Any locally installed model (e.g., `qwen3:8b`, `llama3.1:8b`, `gemma3:4b`)
 - **Multimodal:** Upload **images, videos, audio files, and PDFs**. The AI can analyze and discuss them with you.
 - **Auto-Validation:** The UI automatically adapts file upload options based on the selected model's capabilities.
 - **Thinking Toggle:** 🧠 button enables extended reasoning for 30+ supported models.
 
-### � Web Search with Scout Intelligence
+### 🏠 Ollama — Fully Offline Local AI
+- **Zero API Keys:** Run Kortex completely offline with locally installed models.
+- **Auto-Discovery:** Settings automatically detects and lists all Ollama models.
+- **OpenAI-Compatible:** Uses Ollama's OpenAI-compatible API with tool calling support.
+- **Graceful Fallback:** Models without tool support work seamlessly (text-only).
+- **Status Indicator:** Clear UI message when Ollama isn't running.
+- **Custom Host:** Configure `OLLAMA_BASE_URL` for remote Ollama instances.
+
+### 🔍 Web Search with Scout Intelligence
 - **3-Stage Pipeline:**
   1. **Scout** (Gemini 3.1 Flash-Lite Preview) — Analyzes query, decides if search needed
   2. **Specialist** (Grok or Perplexity) — Performs actual web search
@@ -136,9 +145,21 @@ Create a `.env` file (or copy from `.env.example`):
 OPENAI_API_KEY=sk-...
 GOOGLE_API_KEY=AIza...
 ANTHROPIC_API_KEY=sk-ant-...
+OPENROUTER_API_KEY=sk-or-...
 ```
 
 You can also configure API keys through the Settings modal in the UI.
+
+**For fully offline use with Ollama** — no API keys needed:
+```bash
+# Install Ollama (https://ollama.com)
+curl -fsSL https://ollama.com/install.sh | sh
+
+# Pull a model
+ollama pull qwen3:8b
+
+# Start Kortex — Ollama models appear automatically in Settings
+```
 
 ### 3. Running Kortex Agent
 

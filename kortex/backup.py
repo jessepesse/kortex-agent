@@ -71,7 +71,7 @@ def create_backup(conversation_ids: Optional[List[str]] = None) -> bytes:
         manifest = {
             "version": "1.0",
             "created_at": datetime.now(timezone.utc).isoformat(),
-            "kortex_version": "1.0.0-rc4",
+            "kortex_version": "1.0.0",
             "files": {
                 "data": sorted(data_files),
                 "conversations": sorted(conversation_files),

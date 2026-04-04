@@ -58,9 +58,9 @@ def register_chat_routes(app):
         provider = request_data.get('provider', cfg['default_provider'])
         model = request_data.get('model', cfg['default_model'])
         
-        # Get API key for provider
-        api_key = cfg['api_keys'].get(provider)
-        if not api_key:
+        # Get API key for provider (Ollama doesn't need one)
+        api_key = cfg['api_keys'].get(provider, '')
+        if not api_key and provider != 'ollama':
             return error_response(f"No API key configured for {provider}", 400)
         
         # Generate or use existing chat_id

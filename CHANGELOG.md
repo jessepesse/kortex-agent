@@ -5,6 +5,25 @@ All notable changes to Kortex Agent will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] - 2026-04-04
+
+### Added
+- **Ollama Local AI Provider** — Run Kortex fully offline with local models:
+  - New provider in Settings dropdown with "Ollama (Local)" label
+  - Dynamic model discovery via Ollama's `/api/tags` endpoint
+  - OpenAI-compatible API integration with tool calling support (graceful fallback for models without tools)
+  - Clear status message when Ollama isn't running
+  - No API key required — works completely offline
+  - New `/api/ollama/models` backend endpoint
+  - `OLLAMA_BASE_URL` environment variable for custom Ollama host
+- **Flask async support** — Added `Flask[async]` (asgiref) to fix async view runtime errors
+
+### Fixed
+- **Model selector colon parsing** — Fixed bug where Ollama model names containing colons (e.g., `qwen3:8b`) were incorrectly split, causing the dropdown to show wrong selection
+- **Unknown model file support** — Models not in the static support map (e.g., Ollama models) now get a safe "Text only" fallback instead of defaulting to Gemini's multimodal config
+
+---
+
 ## [1.0.0-rc4] - 2026-04-03
 
 ### Fixed
