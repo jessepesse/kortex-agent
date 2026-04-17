@@ -5,6 +5,29 @@ All notable changes to Kortex Agent will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2026-04-17
+
+### Security
+- **pypdf** 6.9.2 → 6.10.2 — fixes 5 medium-severity DoS advisories (FlateDecode RAM exhaustion, XMP entity exhaustion, wrong-size infinite loops, predictor parameter abuse)
+- **cryptography** ≥46.0.7 transitive constraint — fixes buffer overflow on non-contiguous buffers
+- **pytest** 9.0.2 → 9.0.3 — fixes vulnerable tmpdir handling
+- **axios** 1.14.0 → 1.15.0 — fixes NO_PROXY SSRF bypass and cloud metadata exfiltration via header injection
+- **follow-redirects** ≥1.16.0 override — fixes custom auth header leak on cross-domain redirect
+- **vite** ^8.0.1 → ^8.0.8 — fixes path traversal in optimized deps, `server.fs.deny` bypass, dev-server WebSocket arbitrary file read
+
+### Updated
+- anthropic 0.87.0 → 0.94.0
+- openai 2.30.0 → 2.31.0
+- aiohttp 3.13.4 → 3.13.5
+- react / react-dom 19.2.4 → 19.2.5
+- eslint ^10.1.0 → ^10.2.0
+- globals ^17.4.0 → ^17.5.0
+
+### Known Issues
+- **Pygments** low-severity ReDoS (alert #54) remains open — no upstream patch available.
+
+---
+
 ## [1.0.0] - 2026-04-04
 
 ### Added
