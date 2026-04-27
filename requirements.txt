@@ -27,7 +27,7 @@ bandit==1.9.4
 
 # Transitive dependency security constraints
 werkzeug>=3.1.6
-protobuf>=5.29.6
+protobuf>=7.34.1
 pyasn1>=0.6.3
 urllib3>=2.6.3
 requests>=2.33.0
