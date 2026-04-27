@@ -30,5 +30,5 @@ werkzeug>=3.1.6
 protobuf>=5.29.6
 pyasn1>=0.6.3
 urllib3>=2.6.3
-requests>=2.33.0
+requests>=2.33.1
 cryptography>=46.0.7
