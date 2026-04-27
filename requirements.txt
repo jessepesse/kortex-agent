@@ -26,7 +26,7 @@ pytest-cov==7.1.0
 bandit==1.9.4
 
 # Transitive dependency security constraints
-werkzeug>=3.1.6
+werkzeug>=3.1.8
 protobuf>=5.29.6
 pyasn1>=0.6.3
 urllib3>=2.6.3
