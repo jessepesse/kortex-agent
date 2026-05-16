@@ -6,6 +6,17 @@ const Sidebar = ({ isOpen, onToggle, onSelectChat, onNewChat, onOpenSettings, co
     const [history, setHistory] = useState([]);
     const [loading, setLoading] = useState(true);
 
+    const loadHistory = async () => {
+        try {
+            const data = await getHistory();
+            setHistory(data);
+        } catch (error) {
+            console.error('Failed to load history:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
         if (isOpen) {
             loadHistory();
@@ -46,17 +57,6 @@ const Sidebar = ({ isOpen, onToggle, onSelectChat, onNewChat, onOpenSettings, co
                 console.error('Failed to delete chat:', error);
                 alert('Failed to delete chat');
             }
-        }
-    };
-
-    const loadHistory = async () => {
-        try {
-            const data = await getHistory();
-            setHistory(data);
-        } catch (error) {
-            console.error('Failed to load history:', error);
-        } finally {
-            setLoading(false);
         }
     };
 
