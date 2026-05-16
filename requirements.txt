@@ -6,7 +6,7 @@ aiohttp==3.13.5
 
 # AI Providers
 anthropic==0.97.0
-google-genai>=1.74.0
+google-genai>=2.3.0
 openai==2.33.0
 
 # Web Framework
