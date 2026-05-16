@@ -5,6 +5,29 @@ All notable changes to Kortex Agent will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2] - 2026-05-16
+
+### Security
+- Closed all open Dependabot alerts for `axios` and transitive frontend dependencies.
+- **axios** 1.16.0 → 1.16.1
+- **requests** ≥2.33.1 → ≥2.34.2
+- **urllib3** ≥2.6.3 → ≥2.7.0
+- **cryptography** ≥47.0.0 → ≥48.0.0
+
+### Updated
+- **google-genai** ≥1.74.0 → ≥2.3.0
+- **openai** 2.33.0 → 2.37.0
+- **anthropic** 0.97.0 → 0.102.0
+- **pypdf** 6.10.2 → 6.11.0
+- **react / react-dom** 19.2.5 → 19.2.6
+- **vite** 8.0.10 → 8.0.13
+- **eslint** 10.3.0 → 10.4.0
+
+### Fixed
+- Fixed Sidebar hook lint failure by declaring `loadHistory` before effects that reference it.
+
+---
+
 ## [1.0.1] - 2026-04-17
 
 ### Security
