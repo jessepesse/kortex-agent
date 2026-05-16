@@ -11,8 +11,8 @@ setup(
     author="Jesse Saarinen",
     packages=find_packages(),
     install_requires=[
-        "google-genai>=1.74.0",
-        "openai>=2.33.0",
+        "google-genai>=2.3.0",
+        "openai>=2.37.0",
         "python-dotenv>=1.2.1",
         "flask>=3.1.3",
         "flask-cors>=6.0.2",
