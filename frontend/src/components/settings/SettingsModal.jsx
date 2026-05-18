@@ -25,8 +25,10 @@ const SettingsModal = ({ isOpen, onClose }) => {
         setJsonContent,
         selectedModel,
         selectedProvider,
+        chairmanModel,
         availableModels,
         handleModelChange,
+        handleChairmanModelChange,
         conversations,
         selectedConversations,
         setSelectedConversations,
@@ -70,8 +72,10 @@ const SettingsModal = ({ isOpen, onClose }) => {
                         <ModelSettings
                             selectedModel={selectedModel}
                             selectedProvider={selectedProvider}
+                            chairmanModel={chairmanModel}
                             availableModels={availableModels}
                             onModelChange={handleModelChange}
+                            onChairmanModelChange={handleChairmanModelChange}
                             language={dataFiles.profile?.language}
                             onLanguageChange={updateLanguage}
                             ollamaStatus={ollamaStatus}

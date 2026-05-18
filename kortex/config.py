@@ -31,6 +31,8 @@ def load_config() -> ConfigDict:
             "api_keys": {"openai": "", "google": "", "anthropic": "", "openrouter": "", "ollama": ""},
             "default_provider": "google",
             "default_model": "gemini-3-flash-preview",
+            "chairman_model": "gemini-3-pro-preview",
+            "mega_chairman_model": "gemini-3-pro-preview",
             "models": {
                 "openai": [
                     {"id": "gpt-5"},
@@ -61,6 +63,9 @@ def load_config() -> ConfigDict:
     else:
         with open(CONFIG_FILE, 'r') as f:
             config = json.load(f)
+
+    config.setdefault("chairman_model", "gemini-3-pro-preview")
+    config.setdefault("mega_chairman_model", config["chairman_model"])
             
     # Override with environment variables if present
     if os.getenv("OPENAI_API_KEY"):

@@ -13,9 +13,10 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [currentChatId, setCurrentChatId] = useState(null);
   const [contextData, setContextData] = useState({
-    energy: 75,
-    location: 'Unknown',
-    focus: 'Loading...'
+    energy: null,
+    location: null,
+    focus: null,
+    status: 'loading'
   });
 
   const [pendingFunctionCalls, setPendingFunctionCalls] = useState(null);
@@ -43,21 +44,40 @@ function App() {
   const loadContextData = async () => {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/data/health`);
+      if (!response.ok) throw new Error(`Health data request failed (${response.status})`);
       const healthResponse = await response.json();
       const healthData = healthResponse.data || healthResponse;
 
       const profileResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/data/profile`);
+      if (!profileResponse.ok) throw new Error(`Profile data request failed (${profileResponse.status})`);
       const profileResponseData = await profileResponse.json();
       const profileData = profileResponseData.data || profileResponseData;
 
       setContextData({
-        energy: healthData.current_state?.energy || 75,
-        location: profileData.current_location || 'Unknown',
-        focus: profileData.current_focus || 'General'
+        energy: healthData.current_state?.energy ?? null,
+        location: profileData.current_location || null,
+        focus: profileData.current_focus || null,
+        status: 'ready'
       });
     } catch (error) {
       console.error('Failed to load context data:', error);
+      setContextData({
+        energy: null,
+        location: null,
+        focus: null,
+        status: 'error'
+      });
     }
+  };
+
+  const getErrorMessage = (error) => {
+    const backendMessage = error?.response?.data?.error
+      || error?.response?.data?.message
+      || error?.response?.data?.details;
+
+    if (backendMessage) return `Request failed: ${backendMessage}`;
+    if (error?.message) return `Request failed: ${error.message}`;
+    return 'Request failed. Check the backend logs for details.';
   };
 
   const handleSendMessage = async (text, files = [], reasoningConfig = null, webSearchEnabled = false, forceSearchModel = null) => {
@@ -200,7 +220,7 @@ function App() {
       console.error('Error sending message:', error);
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: 'Sorry, I encountered an error processing your request.',
+        content: getErrorMessage(error),
         timestamp: new Date().toISOString()
       }]);
     } finally {

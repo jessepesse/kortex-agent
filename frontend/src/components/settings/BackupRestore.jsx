@@ -15,6 +15,7 @@ const BackupRestore = ({
     const [backupLoading, setBackupLoading] = useState(false);
     const [restoreFile, setRestoreFile] = useState(null);
     const [validationResult, setValidationResult] = useState(null);
+    const [confirmRestore, setConfirmRestore] = useState(false);
 
     const toggleConversation = (id) => {
         setSelectedConversations(prev =>
@@ -68,6 +69,7 @@ const BackupRestore = ({
         if (!file) return;
 
         setRestoreFile(file);
+        setConfirmRestore(false);
         setStatus('Validating backup...');
 
         try {
@@ -82,18 +84,13 @@ const BackupRestore = ({
 
     const handleRestore = async () => {
         if (!restoreFile || !validationResult?.valid) return;
+        setConfirmRestore(true);
+    };
 
-        const confirmed = window.confirm(
-            '⚠️ VAROITUS!\n\n' +
-            'Tämä toiminto YLIKIRJOITTAA kaiken nykyisen datan.\n' +
-            'Tätä ei voi peruuttaa!\n\n' +
-            'Haluatko varmasti jatkaa?'
-        );
-
-        if (!confirmed) return;
-
+    const confirmRestoreBackup = async () => {
         try {
             setBackupLoading(true);
+            setConfirmRestore(false);
             setStatus('Restoring backup...');
 
             const result = await restoreBackup(restoreFile);
@@ -203,6 +200,22 @@ const BackupRestore = ({
                 >
                     {backupLoading ? '⏳ Restoring...' : '⚠️ Palauta Backup'}
                 </button>
+
+                {confirmRestore && (
+                    <div className="restore-confirm" role="dialog" aria-label="Confirm backup restore">
+                        <p>
+                            Palautus ylikirjoittaa nykyiset datatiedostot. Tätä toimintoa ei voi peruuttaa.
+                        </p>
+                        <div className="restore-confirm-actions">
+                            <button type="button" onClick={() => setConfirmRestore(false)}>
+                                Peruuta
+                            </button>
+                            <button type="button" className="danger" onClick={confirmRestoreBackup}>
+                                Palauta
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

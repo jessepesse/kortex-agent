@@ -18,6 +18,8 @@ class TestLoadConfig:
         
         assert config["default_provider"] == "google"
         assert config["default_model"] == "gemini-3-flash-preview"
+        assert config["chairman_model"] == "gemini-3-pro-preview"
+        assert config["mega_chairman_model"] == "gemini-3-pro-preview"
         assert "openai" in config["models"]
     
     def test_creates_default_if_not_exists(self, tmp_path, monkeypatch):
@@ -32,6 +34,8 @@ class TestLoadConfig:
         assert config_file.exists()
         assert "api_keys" in config
         assert "models" in config
+        assert config["chairman_model"] == "gemini-3-pro-preview"
+        assert config["mega_chairman_model"] == "gemini-3-pro-preview"
     
     def test_env_vars_override_config(self, temp_config_file, monkeypatch):
         """Environment variables should override config file values"""

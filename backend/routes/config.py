@@ -12,6 +12,12 @@ from backend.errors import handle_exceptions, ValidationError, success_response
 
 logger = logging.getLogger(__name__)
 
+CHAIRMAN_MODELS = {
+    "gemini-3-pro-preview",
+    "gpt-5.2",
+    "claude-opus-4-5",
+}
+
 
 def register_config_routes(app):
     """Register configuration endpoints"""
@@ -25,6 +31,8 @@ def register_config_routes(app):
             "providers": cfg.get("models", {}),
             "default_provider": cfg.get("default_provider", "google"),
             "default_model": cfg.get("default_model", "gemini-3-flash-preview"),
+            "chairman_model": cfg.get("chairman_model", "gemini-3-pro-preview"),
+            "mega_chairman_model": cfg.get("mega_chairman_model", cfg.get("chairman_model", "gemini-3-pro-preview")),
         })
 
     @app.route('/api/models', methods=['GET'])
@@ -66,6 +74,26 @@ def register_config_routes(app):
         config.save_config(cfg)
         
         return success_response(message=f"Switched to {provider}: {model}")
+
+    @app.route('/api/config/chairman', methods=['POST'])
+    @handle_exceptions
+    def set_chairman_model():
+        """Set the Council and MEGA chairman model."""
+        req_data = request.get_json()
+        model = req_data.get('model')
+
+        if not model:
+            raise ValidationError("Chairman model is required")
+
+        if model not in CHAIRMAN_MODELS:
+            raise ValidationError(f"Invalid chairman model: {model}")
+
+        cfg = config.load_config()
+        cfg['chairman_model'] = model
+        cfg['mega_chairman_model'] = model
+        config.save_config(cfg)
+
+        return success_response(message=f"Chairman model switched to {model}")
 
     @app.route('/api/config/api-keys', methods=['GET'])
     @handle_exceptions

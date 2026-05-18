@@ -14,6 +14,7 @@ export function useSettings(isOpen) {
     const [status, setStatus] = useState('');
     const [selectedModel, setSelectedModel] = useState('gemini-3-flash-preview');
     const [selectedProvider, setSelectedProvider] = useState('google');
+    const [chairmanModel, setChairmanModel] = useState('gemini-3-pro-preview');
     const [availableModels, setAvailableModels] = useState({});
     const [conversations, setConversations] = useState([]);
     const [selectedConversations, setSelectedConversations] = useState([]);
@@ -63,6 +64,7 @@ export function useSettings(isOpen) {
             console.log('📥 Loaded model settings:', config.default_model, config.default_provider, config.providers);
             setSelectedModel(config.default_model || 'gemini-3-flash-preview');
             setSelectedProvider(config.default_provider || 'google');
+            setChairmanModel(config.chairman_model || 'gemini-3-pro-preview');
 
             // Fetch Ollama models dynamically
             const ollamaModels = await loadOllamaModels();
@@ -98,11 +100,13 @@ export function useSettings(isOpen) {
     const handleModelChange = async (providerAndModel) => {
         // Value format: "provider:model_id" (model_id may contain colons, e.g. "qwen3:8b")
         const sepIndex = providerAndModel.indexOf(':');
+        if (sepIndex === -1) {
+            setStatus('Error: Invalid model selection');
+            return;
+        }
         const provider = providerAndModel.substring(0, sepIndex);
         const model = providerAndModel.substring(sepIndex + 1);
         console.log('🔄 Changing model to:', model, 'provider:', provider);
-        setSelectedModel(model);
-        setSelectedProvider(provider);
 
         try {
             const response = await fetch(`${API_URL}/api/models`, {
@@ -110,7 +114,12 @@ export function useSettings(isOpen) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ provider, model })
             });
-            await response.json();
+            const result = await response.json();
+            if (!response.ok || result.success === false) {
+                throw new Error(result.error || result.message || 'Backend rejected model selection');
+            }
+            setSelectedModel(model);
+            setSelectedProvider(provider);
             setStatus('Model updated!');
             setTimeout(() => setStatus(''), 2000);
 
@@ -121,6 +130,25 @@ export function useSettings(isOpen) {
             const supportsThinking = typeof modelData === 'object' && modelData.thinking === true;
 
             window.dispatchEvent(new CustomEvent('modelChanged', { detail: { model, provider, supportsThinking } }));
+        } catch (error) {
+            setStatus(`Error: ${error.message}`);
+        }
+    };
+
+    const handleChairmanModelChange = async (model) => {
+        try {
+            const response = await fetch(`${API_URL}/api/config/chairman`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ model })
+            });
+            const result = await response.json();
+            if (!response.ok || result.success === false) {
+                throw new Error(result.error || result.message || 'Backend rejected chairman model selection');
+            }
+            setChairmanModel(model);
+            setStatus('Chairman model updated!');
+            setTimeout(() => setStatus(''), 2000);
         } catch (error) {
             setStatus(`Error: ${error.message}`);
         }
@@ -162,8 +190,10 @@ export function useSettings(isOpen) {
         // Model state
         selectedModel,
         selectedProvider,
+        chairmanModel,
         availableModels,
         handleModelChange,
+        handleChairmanModelChange,
         ollamaStatus,
 
         // Backup state

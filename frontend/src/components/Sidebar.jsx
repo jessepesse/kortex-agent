@@ -5,6 +5,8 @@ import './Sidebar.css';
 const Sidebar = ({ isOpen, onToggle, onSelectChat, onNewChat, onOpenSettings, contextData }) => {
     const [history, setHistory] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [deleteTarget, setDeleteTarget] = useState(null);
+    const [notice, setNotice] = useState('');
 
     const loadHistory = async () => {
         try {
@@ -48,15 +50,20 @@ const Sidebar = ({ isOpen, onToggle, onSelectChat, onNewChat, onOpenSettings, co
 
     const handleDeleteChat = async (e, chatId, title) => {
         e.stopPropagation(); // Prevent selecting the chat
-        if (window.confirm(`Are you sure you want to delete "${title}"?`)) {
-            try {
-                await deleteConversation(chatId);
-                // Refresh history immediately
-                loadHistory();
-            } catch (error) {
-                console.error('Failed to delete chat:', error);
-                alert('Failed to delete chat');
-            }
+        setNotice('');
+        setDeleteTarget({ chatId, title });
+    };
+
+    const confirmDeleteChat = async () => {
+        if (!deleteTarget) return;
+
+        try {
+            await deleteConversation(deleteTarget.chatId);
+            setDeleteTarget(null);
+            loadHistory();
+        } catch (error) {
+            console.error('Failed to delete chat:', error);
+            setNotice(`Failed to delete chat: ${error.message}`);
         }
     };
 
@@ -92,6 +99,10 @@ const Sidebar = ({ isOpen, onToggle, onSelectChat, onNewChat, onOpenSettings, co
         ...(pinnedChats.length > 0 && { 'Pinned': pinnedChats }),
         'Recent': recentChats
     };
+    const hasEnergy = typeof contextData?.energy === 'number';
+    const energyValue = hasEnergy ? Math.max(0, Math.min(100, contextData.energy)) : null;
+    const location = contextData?.location || 'Unavailable';
+    const focus = contextData?.focus || 'Unavailable';
 
     return (
         <>
@@ -123,22 +134,22 @@ const Sidebar = ({ isOpen, onToggle, onSelectChat, onNewChat, onOpenSettings, co
                 {/* 2. CONTEXT WIDGET: Separate section below header */}
                 <div className="context-widget-wrapper">
                     <div className="live-context">
-                        <div className="context-item">
+                        <div className={`context-item ${!hasEnergy ? 'unavailable' : ''}`}>
                             <div className="context-row">
                                 <span className="label">Energy</span>
-                                <span className="value">{contextData.energy}%</span>
+                                <span className="value">{hasEnergy ? `${energyValue}%` : 'Unavailable'}</span>
                             </div>
                             <div className="progress-bar">
-                                <div className="progress" style={{ width: `${contextData.energy}%` }}></div>
+                                <div className="progress" style={{ width: `${energyValue ?? 0}%` }}></div>
                             </div>
                         </div>
                         <div className="context-item">
                             <span className="label">📍 Location</span>
-                            <span className="value">{contextData.location}</span>
+                            <span className="value">{location}</span>
                         </div>
                         <div className="context-item">
                             <span className="label">🎯 Focus</span>
-                            <span className="value">{contextData.focus}</span>
+                            <span className="value">{focus}</span>
                         </div>
                     </div>
                 </div>
@@ -188,6 +199,20 @@ const Sidebar = ({ isOpen, onToggle, onSelectChat, onNewChat, onOpenSettings, co
                 </div>
 
                 <div className="sidebar-footer">
+                    {notice && (
+                        <div className="sidebar-notice" role="status">
+                            {notice}
+                        </div>
+                    )}
+                    {deleteTarget && (
+                        <div className="sidebar-confirm" role="dialog" aria-label="Confirm chat deletion">
+                            <p>Delete "{deleteTarget.title}"?</p>
+                            <div className="sidebar-confirm-actions">
+                                <button type="button" onClick={() => setDeleteTarget(null)}>Cancel</button>
+                                <button type="button" className="danger" onClick={confirmDeleteChat}>Delete</button>
+                            </div>
+                        </div>
+                    )}
                     <button className="settings-btn" onClick={onOpenSettings}>
                         ⚙️ System Data
                     </button>

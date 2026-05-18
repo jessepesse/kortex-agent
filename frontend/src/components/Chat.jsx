@@ -19,10 +19,12 @@ const Chat = ({ messages, onSendMessage, isLoading, contextData, councilLoading 
     const messagesEndRef = useRef(null);
     const textareaRef = useRef(null);
     const fileInputRef = useRef(null);
+    const noticeTimeoutRef = useRef(null);
     const [currentModel, setCurrentModel] = useState(null);
     const [thinkingEnabled, setThinkingEnabled] = useState(false);
     const [supportsThinking, setSupportsThinking] = useState(false);
     const [webSearchEnabled, setWebSearchEnabled] = useState(false);
+    const [inputNotice, setInputNotice] = useState(null);
 
     // Scout state
     const [scoutResult, setScoutResult] = useState(null);
@@ -144,8 +146,21 @@ const Chat = ({ messages, onSendMessage, isLoading, contextData, councilLoading 
 
         return () => {
             window.removeEventListener('modelChanged', handleModelChange);
+            if (noticeTimeoutRef.current) {
+                clearTimeout(noticeTimeoutRef.current);
+            }
         };
     }, []);
+
+    const showInputNotice = (message, tone = 'warning') => {
+        setInputNotice({ message, tone });
+        if (noticeTimeoutRef.current) {
+            clearTimeout(noticeTimeoutRef.current);
+        }
+        noticeTimeoutRef.current = setTimeout(() => {
+            setInputNotice(null);
+        }, 4500);
+    };
 
     // Auto-scroll to bottom when new messages arrive
     useEffect(() => {
@@ -177,7 +192,7 @@ const Chat = ({ messages, onSendMessage, isLoading, contextData, councilLoading 
 
         const validFiles = files.filter(file => {
             if (file.size > MAX_FILE_SIZE) {
-                alert(`${file.name} is too large (max 10MB)`);
+                showInputNotice(`${file.name} is too large (max 10MB).`);
                 return false;
             }
             // Check if file type matches any allowed type prefix
@@ -188,7 +203,7 @@ const Chat = ({ messages, onSendMessage, isLoading, contextData, councilLoading 
                 return file.type === allowedType;
             });
             if (!isAllowed) {
-                alert(`${file.name} type not supported by ${currentModel}.\nSupported: ${modelSupport.description}`);
+                showInputNotice(`${file.name} is not supported by ${currentModel}. Supported: ${modelSupport.description}.`);
                 return false;
             }
             return true;
@@ -360,7 +375,7 @@ const Chat = ({ messages, onSendMessage, isLoading, contextData, councilLoading 
     };
 
     // Dynamic Welcome Screen Logic
-    const isLowEnergy = contextData?.energy < 30 ||
+    const isLowEnergy = typeof contextData?.energy === 'number' && contextData.energy < 30 ||
         (contextData?.focus && (contextData.focus.includes('Sairas') || contextData.focus.includes('Sick')));
 
     const handleActionClick = (action) => {
@@ -432,6 +447,11 @@ const Chat = ({ messages, onSendMessage, isLoading, contextData, councilLoading 
             })()}
 
             <form className="chat-input-form" onSubmit={handleSubmit}>
+                {inputNotice && (
+                    <div className={`chat-input-notice ${inputNotice.tone}`} role="status">
+                        {inputNotice.message}
+                    </div>
+                )}
                 {attachedFiles.length > 0 && (
                     <FilePreview files={attachedFiles} onRemove={handleRemoveFile} />
                 )}
@@ -543,7 +563,7 @@ const Chat = ({ messages, onSendMessage, isLoading, contextData, councilLoading 
                     <button
                         type="submit"
                         className="chat-send-button"
-                        disabled={!input.trim() || isLoading}
+                        disabled={(!input.trim() && attachedFiles.length === 0) || isLoading}
                     >
                         {isLoading ? '...' : '➤'}
                     </button>

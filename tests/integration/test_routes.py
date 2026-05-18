@@ -142,6 +142,35 @@ class TestConfigEndpoints:
         assert "providers" in payload["data"]
         assert "default_provider" in payload["data"]
         assert "default_model" in payload["data"]
+        assert "chairman_model" in payload["data"]
+
+    def test_set_chairman_model(self, client, temp_config_file):
+        """POST /api/config/chairman should change chairman models."""
+        from kortex.config import load_config
+
+        response = client.post(
+            '/api/config/chairman',
+            json={"model": "gpt-5.2"}
+        )
+
+        assert response.status_code == 200
+        payload = response.get_json()
+        assert payload["success"] is True
+
+        cfg = load_config()
+        assert cfg["chairman_model"] == "gpt-5.2"
+        assert cfg["mega_chairman_model"] == "gpt-5.2"
+
+    def test_set_invalid_chairman_model(self, client, temp_config_file):
+        """POST /api/config/chairman should reject unknown chairman models."""
+        response = client.post(
+            '/api/config/chairman',
+            json={"model": "invalid-model"}
+        )
+
+        assert response.status_code == 400
+        payload = response.get_json()
+        assert "error" in payload or payload.get("success") is False
     
     def test_get_api_keys_status(self, client, temp_config_file):
         """GET /api/config/api-keys should return key status"""

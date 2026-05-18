@@ -59,6 +59,8 @@
 /* Modern Floating Input Container */
 .chat-input-form {
     display: flex;
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
     padding: clamp(16px, 3vw, 24px) clamp(16px, 4vw, 40px) clamp(20px, 4vw, 40px);
     /* Add safe area for iPhone home indicator */
@@ -67,6 +69,23 @@
     position: relative;
     width: 100%;
     box-sizing: border-box;
+}
+
+.chat-input-notice {
+    width: 100%;
+    max-width: min(800px, 100%);
+    margin-bottom: 8px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    box-sizing: border-box;
+}
+
+.chat-input-notice.warning {
+    color: #fbbf24;
+    background: rgba(251, 191, 36, 0.12);
+    border: 1px solid rgba(251, 191, 36, 0.28);
 }
 
 /* Responsive adjustments for chat */

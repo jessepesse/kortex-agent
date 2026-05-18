@@ -7,8 +7,10 @@ import React from 'react';
 const ModelSettings = ({
     selectedModel,
     selectedProvider,
+    chairmanModel,
     availableModels,
     onModelChange,
+    onChairmanModelChange,
     language,
     onLanguageChange,
     ollamaStatus
@@ -57,7 +59,11 @@ const ModelSettings = ({
 
             <div className="setting-group">
                 <label>Council Chairman</label>
-                <select className="model-select">
+                <select
+                    className="model-select"
+                    value={chairmanModel}
+                    onChange={(e) => onChairmanModelChange(e.target.value)}
+                >
                     <option value="gemini-3-pro-preview">Gemini 3 Pro Preview (Default)</option>
                     <option value="gpt-5.2">GPT-5.2</option>
                     <option value="claude-opus-4-5">Claude Opus 4.5</option>

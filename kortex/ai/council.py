@@ -20,6 +20,15 @@ class CouncilService:
                 base_url="https://openrouter.ai/api/v1"
             )
 
+    def _openrouter_chairman_model(self):
+        model = self.config.get('chairman_model', 'gemini-3-pro-preview')
+        model_map = {
+            'gemini-3-pro-preview': 'google/gemini-3-pro-preview',
+            'gpt-5.2': 'openai/gpt-5.2',
+            'claude-opus-4-5': 'anthropic/claude-opus-4-5',
+        }
+        return model_map.get(model, 'google/gemini-3-pro-preview')
+
     async def get_council_response(self, message, history, context):
         """
         Query council members in parallel and synthesize a response.
@@ -319,11 +328,14 @@ YOUR TASK:
 Format your response in Markdown.
 """
         
-        # Use OpenRouter for Chairman (Gemini 3 Pro)
+        # Use the configured Chairman model via OpenRouter.
         try:
+            model = self._openrouter_chairman_model()
+            extra_body = {"reasoning": {"enabled": True}} if model == "openai/gpt-5.2" else None
             response = await self.openrouter_client.chat.completions.create(
-                model="google/gemini-3-pro-preview",
-                messages=[{"role": "user", "content": prompt}]
+                model=model,
+                messages=[{"role": "user", "content": prompt}],
+                **({"extra_body": extra_body} if extra_body else {})
             )
             return response.choices[0].message.content
         except Exception as e:

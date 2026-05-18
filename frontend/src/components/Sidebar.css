@@ -217,6 +217,10 @@
     font-weight: 600;
 }
 
+.context-item.unavailable .value {
+    color: var(--text-secondary);
+}
+
 .progress-bar {
     width: 100%;
     height: 4px;
@@ -230,6 +234,10 @@
     background: linear-gradient(90deg, #8b5cf6 0%, #3b82f6 100%);
     border-radius: 2px;
     transition: width 0.3s ease;
+}
+
+.context-item.unavailable .progress {
+    background: rgba(255, 255, 255, 0.18);
 }
 
 /* ===========================================
@@ -443,6 +451,56 @@
     padding: 1rem;
     border-top: 1px solid var(--border-color);
     flex-shrink: 0;
+}
+
+.sidebar-notice,
+.sidebar-confirm {
+    margin-bottom: 0.75rem;
+    padding: 0.75rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+
+.sidebar-notice {
+    color: #fca5a5;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.sidebar-confirm {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border-color);
+}
+
+.sidebar-confirm p {
+    margin: 0 0 0.75rem 0;
+    color: var(--text-primary);
+    word-break: break-word;
+}
+
+.sidebar-confirm-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.sidebar-confirm-actions button {
+    flex: 1;
+    padding: 0.5rem;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--text-primary);
+    cursor: pointer;
+}
+
+.sidebar-confirm-actions button:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.sidebar-confirm-actions button.danger {
+    border-color: rgba(239, 68, 68, 0.65);
+    color: #fca5a5;
 }
 
 .settings-btn {
