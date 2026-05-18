@@ -5,6 +5,25 @@ All notable changes to Kortex Agent will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.3] - 2026-05-18
+
+### Fixed
+- Fixed file-only chat sends by aligning the send button disabled state with the submit handler.
+- Replaced browser `alert()` and `confirm()` interruptions with inline validation and confirmation UI in chat, sidebar delete, and backup restore flows.
+- Improved chat error messages so backend failures surface useful details instead of a generic failure response.
+- Prevented Sidebar live context from presenting fallback values as real profile or health data.
+- Fixed Standard Chat model selection so the UI only updates after backend validation succeeds.
+- Wired the Council Chairman selector to persisted backend configuration.
+- Updated Elite Council synthesis to use the configured Chairman model.
+
+### Removed
+- Removed the unused legacy `frontend/src/components/SettingsModal.jsx` component.
+
+### Tests
+- Added regression coverage for Chairman config read/write validation.
+
+---
+
 ## [1.0.2] - 2026-05-16
 
 ### Security
